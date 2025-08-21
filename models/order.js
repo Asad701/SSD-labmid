@@ -1,0 +1,57 @@
+import mongoose from 'mongoose';
+
+const OrderSchema = new mongoose.Schema({
+    orderid: {
+        type: String,
+        unique: true,
+        required: true,
+    },
+    name: {
+        type: String,
+        required: true,
+    },
+    userid: {
+        type: String,
+        required: true,  
+    },
+    products: {
+        type: [Object],
+        required: true,  
+    },
+    email: {
+        type: String,
+        required: true,  
+    },
+    shipped: {
+        type: Boolean,
+        default: false,
+    },
+    dhltracking: {
+        type: String,
+        default: "",
+    },
+    orderprice: {
+        type: Number,
+    },
+    shippingaddress: {
+        type: String,
+        required: true,
+    },
+    contactno: {
+        type: String,
+        required: true,
+    },
+    zip: {
+        type: String,
+        required: true,
+    },
+    country: {
+        type: String,
+        required: true,
+    }
+}, { timestamps: true });
+
+
+const Order = mongoose.models.Order || mongoose.model('Order', OrderSchema);
+
+export default Order;

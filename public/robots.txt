@@ -1,0 +1,16 @@
+# *
+User-agent: *
+Allow: /
+Disallow: /adminlogin
+Disallow: /addProducts
+
+# Googlebot
+User-agent: Googlebot
+Allow: /
+Disallow: /no-google
+
+# Host
+Host: https://royalfoldforge.com
+
+# Sitemaps
+Sitemap: https://royalfoldforge.com/sitemap.xml
