@@ -25,6 +25,16 @@ You can start editing the page by modifying `app/page.js`. The page auto-updates
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
+# for publish 
+
+```bash 
+npm run build
+npm start
+```
+note: you have to have passwrod and username and api key for admin first 
+api in env
+username and password bcrypt-hash in admins collection in mongodb
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:
