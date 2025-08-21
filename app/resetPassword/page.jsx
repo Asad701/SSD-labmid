@@ -76,6 +76,8 @@ export default function VerifyPage() {
             >
               Submit
             </button>
+            {disabled && <span className="text-sm text-green-500">Sending...</span>}
+
           </form>
         )}
       </div>

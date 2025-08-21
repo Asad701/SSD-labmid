@@ -675,9 +675,10 @@ export default function AdminDashboard() {
   return (
   <div className="w-full bg-gradient-to-r from-teal-500 to-blue-700 h-full min-h-full">
   {OK ?
-    <div className="flex flex-col md:flex-row gap-4 p-4 w-full  min-h-full "> 
+    <div className="flex flex-col md:flex-row lg:flex-row gap-4 p-4 w-full  min-h-full "> 
 {/* Sidebar */}
-      <div className="bg-blue-950 text-white p-4 rounded-lg space-y-2 md:w-1/4 md:p-5 lg:p-5 p-5 lg:w-1/4">
+
+      <div className="bg-blue-950 text-white rounded-lg space-y-2 md:w-1/4 md:p-5 lg:p-5 p-5 lg:w-1/4">
         <button onClick={() => { setSelectionType('allProducts'); fetchProducts(); }} className="w-full py-2 bg-blue-800 rounded">All Products</button>
         <button onClick={() => { setSelectionType('users'); fetchUsers(); resetForm();}} className="w-full py-2 bg-blue-800 rounded">All Users</button>
         <button onClick={() => {setSelectionType('allorders'); resetForm();}} className="w-full py-2 bg-blue-800 rounded">All Orders</button>
@@ -698,7 +699,7 @@ export default function AdminDashboard() {
 
 {/* main layout */}
 
-      <div className="flex-1 space-y-4">
+      <div className="flex-1 space-y-4 overflow-auto w-full">
   {/* All Products */}
 
         {selectionType === 'allProducts' && (
@@ -716,13 +717,13 @@ export default function AdminDashboard() {
             </div>
             <div className="w-full flex flex-col min-h-screen h-screen overflow-auto gap-3 p-4 scrollbar-hide">
               {products.map(p => (
-                <div key={p.productid} className="relative flex justify-start bg-gray-200 p-4 rounded-lg gap-4 items-center ">
+                <div key={p.productid} className="relative flex flex-col lg:flex-row md:flex-row justify-start bg-gray-200 p-4 rounded-lg gap-4 items-center w-full">
                   <Image src={`/${p.mainimage}`} alt="main" width={100} height={100} className="object-contain rounded" />
                   <div className='border-blue-500 border-2 rounded-md p-2 '>
                     <p><strong>ID:</strong> {p.productid}</p>
                     <p><strong>Title:</strong> {p.title}</p>
                   </div>
-                  <div className='border-blue-500 border-2 rounded-md p-2 '>
+                  <div className='border-blue-500 border-2 rounded-md p-2'>
                     <p><strong>Price:</strong> {p.price}</p>
                     <p><strong>Discount:</strong> {p.discount}</p>
                   </div>

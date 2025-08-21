@@ -28,6 +28,7 @@ export default function PromoBanner() {
           alt="Promo"
           fill
           className="object-cover rounded-xl"
+          onContextMenu={(e) => e.preventDefault()}
         />
       </div>
     </div>

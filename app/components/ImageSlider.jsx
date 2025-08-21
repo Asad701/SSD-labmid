@@ -37,6 +37,7 @@ export default function ImageSlider() {
                 alt={`Slide ${idx + 1}`}
                 fill
                 className="object-cover montserrat-font"
+                onContextMenu={(e) => e.preventDefault()}
               />
             </div>
           ) : null
@@ -50,6 +51,7 @@ export default function ImageSlider() {
             key={idx}
             className={`w-3 h-3 rounded-full ${current === idx ? 'bg-white' : 'bg-gray-400'}`}
             onClick={() => setCurrent(idx)}
+            onContextMenu={(e) => e.preventDefault()}
           />
         ))}
       </div>

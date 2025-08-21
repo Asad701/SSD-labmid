@@ -7,12 +7,14 @@ export default function VerifyPage() {
   const [code, setCode] = useState('');
   const [message, setMessage] = useState('');
   const [verified, setVerified] = useState(false);
+  const [disabled, setDisabled] = useState(false); // ✅ disable state
   const router = useRouter();
   
-  // Use the useParams hook to get the email from the URL slug
+  // Get email from URL slug
   const params = useParams();
   const email = decodeURIComponent(params.email);
 
+  // Redirect after verification
   useEffect(() => {
     if (verified) {
       const timer = setTimeout(() => {
@@ -20,10 +22,13 @@ export default function VerifyPage() {
       }, 2000);
       return () => clearTimeout(timer);
     }
-  }, [verified, router]);
+  }, [verified, router, email]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setDisabled(true); // ✅ disable button while request is in progress
+    setMessage(''); // clear previous messages
+
     try {
       const response = await fetch('/api/password', {
         method: 'POST',
@@ -38,9 +43,11 @@ export default function VerifyPage() {
         setMessage('✅ Your account is verified!');
       } else {
         setMessage(result.error || 'Verification failed.');
+        setDisabled(false); // ✅ re-enable button if verification fails
       }
     } catch (err) {
       setMessage('Internal server error.');
+      setDisabled(false); // ✅ re-enable button on error
     }
   };
 
@@ -49,7 +56,7 @@ export default function VerifyPage() {
       <div className="bg-white p-10 rounded-xl w-full max-w-md shadow-2xl">
         <h1 className="text-3xl font-bold text-gray-800 text-center mb-6">🔐 Verify Your Email</h1>
 
-        {verified? (
+        {verified ? (
           <p className="text-green-600 text-center text-lg font-semibold">
             🎉 {message}
           </p>
@@ -65,14 +72,18 @@ export default function VerifyPage() {
             />
 
             {message && (
-              <div className="text-center text-sm text-red-500 font-semibold">{message}</div>
+              <div className={`text-center text-sm font-semibold ${verified ? 'text-green-600' : 'text-red-500'}`}>
+                {message}
+              </div>
             )}
 
             <button
               type="submit"
-              className="py-3 bg-blue-800 text-white font-semibold rounded-md hover:bg-blue-700 transition"
+              disabled={disabled} // ✅ disable during request
+              className={`py-3 font-semibold rounded-md transition 
+                ${disabled ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-800 text-white hover:bg-blue-700'}`}
             >
-              Verify Code
+              {disabled ? 'Verifying...' : 'Verify Code'}
             </button>
           </form>
         )}

@@ -78,16 +78,16 @@ export default function AccountPage() {
   return (
     <div className="flex flex-col md:flex-row gap-5 px-2">
       {/* Sidebar */}
-      <div className="py-7 px-4 mt-4 flex flex-col rounded-xl gap-3 w-full md:w-1/3 bg-blue-950 text-white">
-        <button className="montserrat-font bg-blue-800 hover:bg-blue-700 py-4 rounded-full" onClick={() => router.push("/account/myinfo")}>My Profile</button>
-        <button className="montserrat-font bg-blue-800 hover:bg-blue-700 py-4 rounded-full" onClick={() => router.push("/cart")}>Your Cart</button>
-        <button className="montserrat-font bg-blue-800 hover:bg-blue-700 py-4 rounded-full" onClick={() => router.push("/account/myorders")}>Orders</button>
-        <button className="montserrat-font bg-blue-800 hover:bg-blue-700 py-4 rounded-full" onClick={() => router.push("/favs")}>Your Favourite</button>
-        <Link href="/account/edit" className="montserrat-font bg-red-700 hover:bg-red-600 py-4 flex justify-center items-center rounded-full">
+      <div className="py-7 px-4 mt-4 flex flex-col rounded-xl gap-3 w-full md:w-1/3 bg-blue-800 text-white">
+        <button className="montserrat-font bg-blue-600 hover:bg-blue-500 py-4 rounded-full" onClick={() => router.push("/account/myinfo")}>My Profile</button>
+        <button className="montserrat-font bg-blue-600 hover:bg-blue-500 py-4 rounded-full" onClick={() => router.push("/cart")}>Your Cart</button>
+        <button className="montserrat-font bg-blue-600 hover:bg-blue-500 py-4 rounded-full" onClick={() => router.push("/account/myorders")}>Orders</button>
+        <button className="montserrat-font bg-blue-600 hover:bg-blue-500 py-4 rounded-full" onClick={() => router.push("/favs")}>Your Favourite</button>
+        <Link href="/account/edit" className="montserrat-font bg-red-600 hover:bg-red-500 py-4 flex justify-center items-center rounded-full">
           Edit Info
         </Link>
-        <button onClick={handleLogout} className="montserrat-font bg-red-700 hover:bg-red-600 py-4 rounded-full">Logout</button>
-        <button onClick={handleDelete} className="montserrat-font bg-red-700 hover:bg-red-600 py-4 rounded-full">
+        <button onClick={handleLogout} className="montserrat-font bg-red-600 hover:bg-red-500 py-4 rounded-full">Logout</button>
+        <button onClick={handleDelete} className="montserrat-font bg-red-600 hover:bg-red-500 py-4 rounded-full">
           {loading ? "Processing..." : "Request Account Deletion"}
         </button>
       </div>
@@ -99,16 +99,20 @@ export default function AccountPage() {
 
         <div className="montserrat-font flex flex-col w-full items-center justify-center gap-5">
           <div className="montserrat-font bg-black w-[90%] sm:w-[70%] py-2 rounded-xl">
-            <label className="montserrat-font flex justify-center text-white font-bold italic underline text-lg sm:text-2xl">USER ID:</label>
+            <label className="montserrat-font flex justify-center text-white font-bold italic underline text-lg sm:text-2xl">USER ID</label>
             <p className="montserrat-font flex justify-center text-white text-base sm:text-lg">{user.userid}</p>
           </div>
           <div className="montserrat-font bg-black w-[90%] sm:w-[70%] py-2 rounded-xl">
-            <label className="flex justify-center text-white font-bold italic underline text-lg sm:text-2xl">NAME:</label>
+            <label className="flex justify-center text-white font-bold italic underline text-lg sm:text-2xl">NAME</label>
             <p className="flex justify-center text-white text-base sm:text-lg">{user.fname + ' ' + user.lname}</p>
           </div>
           <div className="bg-black w-[90%] sm:w-[70%] py-2 rounded-xl">
-            <label className="flex justify-center text-white font-bold italic underline text-lg sm:text-2xl">EMAIL:</label>
+            <label className="flex justify-center text-white font-bold italic underline text-lg sm:text-2xl">EMAIL</label>
             <p className="flex justify-center text-white text-base sm:text-lg">{user.email}</p>
+          </div>
+          <div className="bg-black w-[90%] sm:w-[70%] py-2 rounded-xl">
+            <label className="flex justify-center text-white font-bold italic underline text-lg sm:text-2xl">COUNTRY</label>
+            <p className="flex justify-center text-white text-base sm:text-lg">{user.country}</p>
           </div>
         </div>
 

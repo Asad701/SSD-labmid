@@ -8,6 +8,7 @@ export default function VerifyPage() {
   const [Cpwd, setCPwd] = useState('');
   const [message, setMessage] = useState('');
   const [OK, setOK] = useState(false);
+  const [disabled, setDisabled] = useState(false); // ✅ disable state
   const router = useRouter();
 
   // Get email from URL slug
@@ -29,26 +30,31 @@ export default function VerifyPage() {
 
     if (pwd !== Cpwd) {
       setMessage('Passwords do not match.');
-      return;
+      return; // ✅ do not disable button if passwords mismatch
     }
+
+    setDisabled(true); // ✅ disable button while request is in progress
+    setMessage(''); // clear previous messages
 
     try {
       const response = await fetch('/api/resetpwd', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password: pwd }), // ✅ Fixed key name
+        body: JSON.stringify({ email, password: pwd }),
       });
 
       const result = await response.json();
 
       if (response.ok) {
         setOK(true);
-        setMessage(result.message);
+        setMessage(result.message || 'Password updated successfully!');
       } else {
         setMessage(result.message || result.error || 'Something went wrong.');
+        setDisabled(false); // ✅ re-enable button if request failed
       }
     } catch (err) {
       setMessage('Internal server error.');
+      setDisabled(false); // ✅ re-enable button on error
     }
   };
 
@@ -59,7 +65,7 @@ export default function VerifyPage() {
 
         {OK ? (
           <p className="text-green-600 text-center text-lg font-semibold">
-            🎉 {message}
+            {message}
           </p>
         ) : (
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
@@ -88,9 +94,11 @@ export default function VerifyPage() {
 
             <button
               type="submit"
-              className="py-3 bg-blue-800 text-white font-semibold rounded-md hover:bg-blue-700 transition"
+              disabled={disabled} // ✅ disable during request
+              className={`py-3 font-semibold rounded-md transition 
+                ${disabled ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-800 text-white hover:bg-blue-700'}`}
             >
-              Submit
+              {disabled ? 'Processing...' : 'Submit'}
             </button>
           </form>
         )}
