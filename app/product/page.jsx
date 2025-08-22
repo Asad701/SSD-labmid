@@ -87,7 +87,7 @@ export default function Product() {
   const handleView = (type) => setView(type);
 
   if (notFoundState && !loading) return <NotFound />;
-  if (loading) return <div className="z-50 flex items-center justify-center w-full h-full bg-black"><Loading /></div>;
+  if (loading) return <div className="flex items-center justify-center w-full h-full bg-black"><Loading /></div>;
 
   return (
     <main className="relative flex gap-2 w-full">
