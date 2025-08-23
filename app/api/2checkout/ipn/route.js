@@ -1,3 +1,4 @@
+// /app/api/2checkout/ipn/route.js
 import DbConnect from "@/lib/db";
 import Order from "@/models/order";
 
@@ -42,15 +43,19 @@ export async function POST(req) {
       formData.forEach((value, key) => (payload[key] = value));
     }
 
-    // Log full payload
+    // Log the full payload
     console.log("📥 IPN received:", payload);
+
+    // Normalize products
+    const products = normalizeProducts(payload);
+    console.log("📦 Normalized products:", products);
 
     // Build order data
     const orderData = {
       orderid: payload.REFNO || payload.ReferenceNo || "unknown",
       name: ((payload.FIRSTNAME || "") + " " + (payload.LASTNAME || "")).trim(),
       userid: payload.SHOPPER_REFERENCE_NUMBER || payload.CustomerReference || "guest",
-      products: normalizeProducts(payload),
+      products,
       email: payload.CUSTOMEREMAIL || "",
       orderprice: Number(payload.IPN_TOTALGENERAL || payload.Total || 0),
       shippingaddress: (
