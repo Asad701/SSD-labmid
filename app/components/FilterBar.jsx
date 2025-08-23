@@ -22,10 +22,12 @@ export default function FilterBar({ total, setOrder, setViewType }) {
           onChange={handleSortChange}
           className="border bg-gray-200 rounded  montserrat-font px-2 py-1 text-sm italic font-bold text-black"
         >
+          <option value="pop" className='montserrat-font'>Popularity: High to Low</option>
           <option value="inc" className='montserrat-font'>Price: Low to High</option>
           <option value="a-z" className='montserrat-font'>Alphabetically, A–Z</option>
           <option value="z-a" className='montserrat-font'>Alphabetically, Z–A</option>
           <option value="dec" className='montserrat-font'>Price: High to Low</option>
+          
         </select>
 
         <div className="flex items-center gap-2 montserrat-font">
