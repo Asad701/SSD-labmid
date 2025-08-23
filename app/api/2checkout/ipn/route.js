@@ -1,11 +1,11 @@
-// /app/api/2checkout/ipn/route.js (or /pages/api/2checkout/ipn.js for pages router)
 import crypto from "crypto";
 import { NextResponse } from "next/server";
-import DbConnect from "@/lib/db"; // adjust to your path
+import DbConnect from "@/lib/db";
 import Order from "@/models/order";
 
-const SECRET_WORD = process.env.TWOCHECKOUT_SECRET_WORD || "your_secret_word";
-const SELLER_ID   = process.env.TWOCHECKOUT_SELLER_ID   || "your_seller_id";
+// Load env vars
+const SECRET_WORD = process.env.TCO_SECRET_WORD?.trim() || "";
+const SELLER_ID   = process.env.TCO_SELLER_ID?.trim() || "";
 
 // ---------- Signature helpers ----------
 function buildSortedDataString(payload) {
@@ -16,9 +16,10 @@ function buildSortedDataString(payload) {
     .join("");
 }
 
-// Legacy MD5: md5(SecretWord + SellerId + REFNO + PAYMENTTOTAL)
+// Legacy MD5: md5(SecretWord + SellerId + REFNO + TOTAL)
 function md5Legacy(payload) {
-  const ref   = payload["REFNO"] || payload["REFNOEXT"] || payload["ORDERNO"] || "";
+  const ref =
+    payload["REFNO"] || payload["REFNOEXT"] || payload["ORDERNO"] || "";
   const total =
     payload["PAYMENTTOTAL"] ||
     payload["TOTAL"] ||
@@ -26,7 +27,7 @@ function md5Legacy(payload) {
     payload["ORDER_TOTAL"] ||
     "";
   const raw = `${SECRET_WORD}${SELLER_ID}${ref}${total}`;
-  return crypto.createHash("md5").update(raw).digest("hex");
+  return crypto.createHash("md5").update(raw).digest("hex").toUpperCase(); // ✅ force uppercase
 }
 
 function hmac(payload, alg) {
@@ -42,7 +43,7 @@ function hashNoKey(payload, alg) {
 // Try multiple algorithms to match received signature
 function verifySignature(payload) {
   const received =
-    (payload.HASH || payload.hash || payload.signature || payload.SIGNATURE || "").toString();
+    (payload.HASH || payload.hash || payload.signature || payload.SIGNATURE || "").toString().trim();
 
   if (!received) return { ok: false, reason: "Missing signature field" };
 
@@ -51,15 +52,15 @@ function verifySignature(payload) {
   // 1) Legacy MD5 (HASH)
   candidates.push({ alg: "md5-legacy", value: md5Legacy(payload) });
 
-  // 2) HMAC variants commonly used by Verifone/2CO (signature)
-  ["sha256", "sha512", "sha3-256", "sha3-512"].forEach((alg) => {
+  // 2) HMAC variants
+  ["sha256", "sha512"].forEach((alg) => {
     try {
       candidates.push({ alg: `hmac-${alg}`, value: hmac(payload, alg) });
     } catch {}
   });
 
-  // 3) (Rare) non-HMAC variants (if merchant panel misconfigured)
-  ["sha256", "sha512", "sha3-256", "sha3-512", "md5"].forEach((alg) => {
+  // 3) Hash-only fallback
+  ["sha256", "sha512", "md5"].forEach((alg) => {
     try {
       candidates.push({ alg, value: hashNoKey(payload, alg) });
     } catch {}
@@ -73,7 +74,7 @@ function verifySignature(payload) {
     : { ok: false, reason: "No algorithm matched", tried: candidates.map((c) => c.alg) };
 }
 
-// ---------- Helpers to read products ----------
+// ---------- Helpers ----------
 function toInt(v, d = 0) {
   const n = parseInt(v, 10);
   return Number.isFinite(n) ? n : d;
@@ -86,12 +87,11 @@ function toFloat(v, d = 0) {
 function extractProducts(payload) {
   const count = toInt(payload["IPN_TOTALGENERALITEMS"] ?? payload["IPN_TOTALGENERAL"] ?? 0, 0);
 
-  // If count present, use indexed fields
   if (count > 0 && payload[`IPN_PID[0]`]) {
     const items = [];
     for (let i = 0; i < count; i++) {
       items.push({
-        pid: payload[`IPN_PID[${i}]`] || "", // 2CO product code
+        pid: payload[`IPN_PID[${i}]`] || "",
         name: payload[`IPN_NAME[${i}]`] || "",
         quantity: toInt(payload[`IPN_QTY[${i}]`] || 1, 1),
         price: toFloat(payload[`IPN_PRICE[${i}]`] || 0, 0),
@@ -100,7 +100,6 @@ function extractProducts(payload) {
     return items;
   }
 
-  // Fallback: single item fields (some integrations)
   if (payload["PRODUCTID"] || payload["PRODUCTNAME"]) {
     return [
       {
@@ -115,10 +114,8 @@ function extractProducts(payload) {
   return [];
 }
 
-// Decide shipped & status from ORDERSTATUS
 function statusInfo(raw) {
   const s = String(raw || "").toUpperCase();
-  // Adjust to your flow if needed
   if (["COMPLETE", "CONFIRMED"].includes(s)) return { status: s, shipped: true };
   return { status: s || "PENDING", shipped: false };
 }
@@ -127,7 +124,6 @@ function statusInfo(raw) {
 export async function POST(req) {
   await DbConnect();
 
-  // Parse x-www-form-urlencoded or multipart/form-data
   const ct = req.headers.get("content-type") || "";
   let payload = {};
   if (ct.includes("application/json")) {
@@ -143,12 +139,10 @@ export async function POST(req) {
     return NextResponse.json({ error: "Invalid signature" }, { status: 403 });
   }
 
-  // Extract core fields
-  const orderRef   = payload["REFNOEXT"] || payload["REFNO"] || payload["ORDERNO"] || "";
+  const orderRef = payload["REFNOEXT"] || payload["REFNO"] || payload["ORDERNO"] || "";
   const { status, shipped } = statusInfo(payload["ORDERSTATUS"]);
   const items = extractProducts(payload);
 
-  // Order price: trust gateway total, else compute
   const gatewayTotal =
     payload["PAYMENTTOTAL"] ||
     payload["TOTAL"] ||
@@ -156,10 +150,12 @@ export async function POST(req) {
     payload["IPN_TOTALGENERAL"] ||
     null;
 
-  const computedTotal = items.reduce((sum, it) => sum + (Number(it.price) || 0) * (Number(it.quantity) || 0), 0);
+  const computedTotal = items.reduce(
+    (sum, it) => sum + (Number(it.price) || 0) * (Number(it.quantity) || 0),
+    0
+  );
   const orderprice = toFloat(gatewayTotal ?? computedTotal, 0);
 
-  // Compose address (fallbacks)
   const addressParts = [
     payload["BILLINGADDRESS"],
     payload["BILLINGADDRESS2"],
@@ -168,23 +164,23 @@ export async function POST(req) {
   ].filter(Boolean);
 
   const orderDoc = {
-    orderid: orderRef,                                 // required by your schema
+    orderid: orderRef,
     name: payload["BILLINGNAME"] || `${payload["FNAME"] || ""} ${payload["LNAME"] || ""}`.trim() || "Unknown",
     userid:
       payload["EXTERNAL_CUSTOMER_REFERENCE"] ||
       payload["CLIENTID"] ||
       payload["CUSTOMERID"] ||
       "guest",
-    products: items,                                    // [{ pid, name, quantity, price }]
+    products: items,
     email: payload["EMAIL"] || payload["BILLINGEMAIL"] || "",
     shipped,
-    dhltracking: "",                                    // set later when shipped via DHL
+    dhltracking: "",
     orderprice,
     shippingaddress: addressParts.join(", ") || "",
     contactno: payload["PHONE"] || payload["PHONENUMBER"] || "",
     zip: payload["ZIPCODE"] || payload["ZIP"] || "",
     country: payload["COUNTRY"] || payload["BILLINGCOUNTRY"] || "",
-    status,                                             // ← add this to your schema
+    status,
   };
 
   try {
@@ -193,7 +189,7 @@ export async function POST(req) {
       orderDoc,
       { upsert: true, new: true, setDefaultsOnInsert: true }
     );
-    console.log(`✅ IPN saved: ${orderRef} (${verify.matched}) items=${items.length} status=${status} shipped=${shipped}`);
+    console.log(`✅ IPN saved: ${orderRef} (matched=${verify.matched}) items=${items.length} status=${status}`);
     return new Response("OK", { status: 200 });
   } catch (err) {
     console.error("❌ DB error saving order", err);
