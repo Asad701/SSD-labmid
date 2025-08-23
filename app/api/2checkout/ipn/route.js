@@ -1,8 +1,9 @@
 import DbConnect from "@/lib/db";
 import Order from "@/models/order";
 
-// Normalize products
+// Normalize products for single or multiple items
 function normalizeProducts(payload) {
+  // Multiple products (arrays)
   if (Array.isArray(payload["IPN_PID[]"])) {
     return payload["IPN_PID[]"].map((pid, i) => ({
       pid,
@@ -12,6 +13,18 @@ function normalizeProducts(payload) {
       price: Number(payload["IPN_PRICE[]"]?.[i] || 0),
     }));
   }
+
+  // Single product fallback
+  if (payload["IPN_PID"] || payload["PRODUCTID"] || payload["PRODUCTNAME"]) {
+    return [{
+      pid: payload["IPN_PID"] || payload["PRODUCTID"] || "",
+      code: payload["IPN_PCODE"] || payload["PRODUCTID"] || "",
+      name: payload["IPN_PNAME"] || payload["PRODUCTNAME"] || "",
+      qty: Number(payload["IPN_QTY"] || payload["QUANTITY"] || 1),
+      price: Number(payload["IPN_PRICE"] || payload["PRICE"] || 0),
+    }];
+  }
+
   return [];
 }
 
@@ -19,7 +32,7 @@ export async function POST(req) {
   try {
     await DbConnect();
 
-    // Parse form-data or JSON
+    // Parse JSON or form-data
     const contentType = req.headers.get("content-type") || "";
     let payload = {};
     if (contentType.includes("application/json")) {
@@ -29,7 +42,7 @@ export async function POST(req) {
       formData.forEach((value, key) => (payload[key] = value));
     }
 
-    // Log the full payload
+    // Log full payload
     console.log("📥 IPN received:", payload);
 
     // Build order data
