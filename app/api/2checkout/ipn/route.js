@@ -18,11 +18,11 @@ function normalizeProducts(payload) {
   // Single product fallback
   if (payload["IPN_PID"] || payload["PRODUCTID"] || payload["PRODUCTNAME"]) {
     return [{
-      pid: payload["IPN_PID"] || payload["PRODUCTID"] || "",
-      code: payload["IPN_PCODE"] || payload["PRODUCTID"] || "",
-      name: payload["IPN_PNAME"] || payload["PRODUCTNAME"] || "",
-      qty: Number(payload["IPN_QTY"] || payload["QUANTITY"] || 1),
-      price: Number(payload["IPN_PRICE"] || payload["PRICE"] || 0),
+      pid: payload["IPN_PID[]"] || payload["PRODUCTID"] || "",
+      code: payload["IPN_PCODE[]"] || payload["PRODUCTID"] || "",
+      name: payload["IPN_PNAME[]"] || payload["PRODUCTNAME"] || "",
+      qty: Number(payload["IPN_QTY[]"] || payload["QUANTITY"] || 1),
+      price: Number(payload["IPN_PRICE[]"] || payload["PRICE"] || 0),
     }];
   }
 
