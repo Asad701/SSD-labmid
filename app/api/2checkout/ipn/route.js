@@ -1,93 +1,204 @@
+// /app/api/2checkout/ipn/route.js (or /pages/api/2checkout/ipn.js for pages router)
 import crypto from "crypto";
 import { NextResponse } from "next/server";
-import DbConnect from "@/lib/db"; // adjust path
+import DbConnect from "@/lib/db"; // adjust to your path
 import Order from "@/models/order";
 
 const SECRET_WORD = process.env.TWOCHECKOUT_SECRET_WORD || "your_secret_word";
+const SELLER_ID   = process.env.TWOCHECKOUT_SELLER_ID   || "your_seller_id";
 
-// 🔐 HMAC Signature Helper
-function calculateHmacSignature(payload, secret) {
-  const sortedKeys = Object.keys(payload).sort();
-  const dataString = sortedKeys
-    .filter((key) => key !== "HASH" && key !== "signature")
-    .map((key) => `${key}=${payload[key]}`)
+// ---------- Signature helpers ----------
+function buildSortedDataString(payload) {
+  return Object.keys(payload)
+    .sort()
+    .filter((k) => !["HASH", "hash", "signature", "SIGNATURE"].includes(k))
+    .map((k) => `${k}=${payload[k]}`)
     .join("");
-
-  return crypto
-    .createHmac("sha512", secret)
-    .update(dataString)
-    .digest("hex")
-    .toUpperCase();
 }
 
+// Legacy MD5: md5(SecretWord + SellerId + REFNO + PAYMENTTOTAL)
+function md5Legacy(payload) {
+  const ref   = payload["REFNO"] || payload["REFNOEXT"] || payload["ORDERNO"] || "";
+  const total =
+    payload["PAYMENTTOTAL"] ||
+    payload["TOTAL"] ||
+    payload["IPN_TOTALGENERAL"] ||
+    payload["ORDER_TOTAL"] ||
+    "";
+  const raw = `${SECRET_WORD}${SELLER_ID}${ref}${total}`;
+  return crypto.createHash("md5").update(raw).digest("hex");
+}
+
+function hmac(payload, alg) {
+  const data = buildSortedDataString(payload);
+  return crypto.createHmac(alg, SECRET_WORD).update(data).digest("hex");
+}
+
+function hashNoKey(payload, alg) {
+  const data = buildSortedDataString(payload);
+  return crypto.createHash(alg).update(data).digest("hex");
+}
+
+// Try multiple algorithms to match received signature
+function verifySignature(payload) {
+  const received =
+    (payload.HASH || payload.hash || payload.signature || payload.SIGNATURE || "").toString();
+
+  if (!received) return { ok: false, reason: "Missing signature field" };
+
+  const candidates = [];
+
+  // 1) Legacy MD5 (HASH)
+  candidates.push({ alg: "md5-legacy", value: md5Legacy(payload) });
+
+  // 2) HMAC variants commonly used by Verifone/2CO (signature)
+  ["sha256", "sha512", "sha3-256", "sha3-512"].forEach((alg) => {
+    try {
+      candidates.push({ alg: `hmac-${alg}`, value: hmac(payload, alg) });
+    } catch {}
+  });
+
+  // 3) (Rare) non-HMAC variants (if merchant panel misconfigured)
+  ["sha256", "sha512", "sha3-256", "sha3-512", "md5"].forEach((alg) => {
+    try {
+      candidates.push({ alg, value: hashNoKey(payload, alg) });
+    } catch {}
+  });
+
+  const recLower = received.toLowerCase();
+  const hit = candidates.find((c) => c.value.toLowerCase() === recLower);
+
+  return hit
+    ? { ok: true, matched: hit.alg }
+    : { ok: false, reason: "No algorithm matched", tried: candidates.map((c) => c.alg) };
+}
+
+// ---------- Helpers to read products ----------
+function toInt(v, d = 0) {
+  const n = parseInt(v, 10);
+  return Number.isFinite(n) ? n : d;
+}
+function toFloat(v, d = 0) {
+  const n = parseFloat(v);
+  return Number.isFinite(n) ? n : d;
+}
+
+function extractProducts(payload) {
+  const count = toInt(payload["IPN_TOTALGENERALITEMS"] ?? payload["IPN_TOTALGENERAL"] ?? 0, 0);
+
+  // If count present, use indexed fields
+  if (count > 0 && payload[`IPN_PID[0]`]) {
+    const items = [];
+    for (let i = 0; i < count; i++) {
+      items.push({
+        pid: payload[`IPN_PID[${i}]`] || "", // 2CO product code
+        name: payload[`IPN_NAME[${i}]`] || "",
+        quantity: toInt(payload[`IPN_QTY[${i}]`] || 1, 1),
+        price: toFloat(payload[`IPN_PRICE[${i}]`] || 0, 0),
+      });
+    }
+    return items;
+  }
+
+  // Fallback: single item fields (some integrations)
+  if (payload["PRODUCTID"] || payload["PRODUCTNAME"]) {
+    return [
+      {
+        pid: payload["PRODUCTID"] || payload["PRODUCTCODE"] || "",
+        name: payload["PRODUCTNAME"] || "",
+        quantity: toInt(payload["QUANTITY"] || 1, 1),
+        price: toFloat(payload["PRICE"] || payload["PAYMENTAMOUNT"] || 0, 0),
+      },
+    ];
+  }
+
+  return [];
+}
+
+// Decide shipped & status from ORDERSTATUS
+function statusInfo(raw) {
+  const s = String(raw || "").toUpperCase();
+  // Adjust to your flow if needed
+  if (["COMPLETE", "CONFIRMED"].includes(s)) return { status: s, shipped: true };
+  return { status: s || "PENDING", shipped: false };
+}
+
+// ---------- Route handlers ----------
 export async function POST(req) {
   await DbConnect();
 
-  const formData = await req.formData();
-  const payload = {};
-
-  for (let [key, value] of formData.entries()) {
-    payload[key] = value;
+  // Parse x-www-form-urlencoded or multipart/form-data
+  const ct = req.headers.get("content-type") || "";
+  let payload = {};
+  if (ct.includes("application/json")) {
+    payload = await req.json();
+  } else {
+    const formData = await req.formData();
+    for (const [k, v] of formData.entries()) payload[k] = v;
   }
 
-  // ✅ Validate signature
-  const receivedSignature = payload["HASH"] || payload["signature"];
-  if (!receivedSignature) {
-    return NextResponse.json({ error: "Missing signature" }, { status: 400 });
-  }
-
-  const expectedSignature = calculateHmacSignature(payload, SECRET_WORD);
-  if (receivedSignature !== expectedSignature) {
-    console.error("❌ Invalid signature:", { expectedSignature, receivedSignature });
+  const verify = verifySignature(payload);
+  if (!verify.ok) {
+    console.error("❌ Invalid signature", verify, { received: payload.HASH || payload.signature });
     return NextResponse.json({ error: "Invalid signature" }, { status: 403 });
   }
 
-  console.log("✅ Valid IPN received:", payload);
+  // Extract core fields
+  const orderRef   = payload["REFNOEXT"] || payload["REFNO"] || payload["ORDERNO"] || "";
+  const { status, shipped } = statusInfo(payload["ORDERSTATUS"]);
+  const items = extractProducts(payload);
+
+  // Order price: trust gateway total, else compute
+  const gatewayTotal =
+    payload["PAYMENTTOTAL"] ||
+    payload["TOTAL"] ||
+    payload["ORDER_TOTAL"] ||
+    payload["IPN_TOTALGENERAL"] ||
+    null;
+
+  const computedTotal = items.reduce((sum, it) => sum + (Number(it.price) || 0) * (Number(it.quantity) || 0), 0);
+  const orderprice = toFloat(gatewayTotal ?? computedTotal, 0);
+
+  // Compose address (fallbacks)
+  const addressParts = [
+    payload["BILLINGADDRESS"],
+    payload["BILLINGADDRESS2"],
+    payload["CITY"],
+    payload["STATE"],
+  ].filter(Boolean);
+
+  const orderDoc = {
+    orderid: orderRef,                                 // required by your schema
+    name: payload["BILLINGNAME"] || `${payload["FNAME"] || ""} ${payload["LNAME"] || ""}`.trim() || "Unknown",
+    userid:
+      payload["EXTERNAL_CUSTOMER_REFERENCE"] ||
+      payload["CLIENTID"] ||
+      payload["CUSTOMERID"] ||
+      "guest",
+    products: items,                                    // [{ pid, name, quantity, price }]
+    email: payload["EMAIL"] || payload["BILLINGEMAIL"] || "",
+    shipped,
+    dhltracking: "",                                    // set later when shipped via DHL
+    orderprice,
+    shippingaddress: addressParts.join(", ") || "",
+    contactno: payload["PHONE"] || payload["PHONENUMBER"] || "",
+    zip: payload["ZIPCODE"] || payload["ZIP"] || "",
+    country: payload["COUNTRY"] || payload["BILLINGCOUNTRY"] || "",
+    status,                                             // ← add this to your schema
+  };
 
   try {
-    const orderId = payload["REFNO"];            // 2Checkout order reference
-    const status = payload["ORDERSTATUS"];       // PENDING / COMPLETE etc.
-    const totalProducts = parseInt(payload["IPN_TOTALGENERALITEMS"] || "1");
-
-    // 🔄 Extract products array
-    const products = [];
-    for (let i = 0; i < totalProducts; i++) {
-      products.push({
-        pid: payload[`IPN_PID[${i}]`],            // product code
-        name: payload[`IPN_NAME[${i}]`] || "",
-        quantity: parseInt(payload[`IPN_QTY[${i}]`] || "1"),
-        price: parseFloat(payload[`IPN_PRICE[${i}]`] || "0"),
-      });
-    }
-
-    // Save order
-    const orderData = {
-      orderid: orderId,
-      name: payload["BILLINGNAME"] || "Unknown",
-      userid: payload["MERCHANTID"] || "guest",
-      products,
-      email: payload["EMAIL"] || "",
-      shipped: status === "COMPLETE" ? true : false,
-      dhltracking: "",
-      orderprice: parseFloat(payload["PAYMENTTOTAL"] || "0"),
-      shippingaddress: payload["BILLINGADDRESS"] || "",
-      contactno: payload["PHONE"] || "",
-      zip: payload["ZIPCODE"] || "",
-      country: payload["COUNTRY"] || "",
-    };
-
-    await Order.findOneAndUpdate({ orderid: orderId }, orderData, {
-      upsert: true,
-      new: true,
-    });
-
-    console.log(`✅ Order ${orderId} saved/updated with ${products.length} items.`);
-  } catch (error) {
-    console.error("❌ Error saving order:", error);
-    return NextResponse.json({ error: "Failed to save order" }, { status: 500 });
+    await Order.findOneAndUpdate(
+      { orderid: orderRef },
+      orderDoc,
+      { upsert: true, new: true, setDefaultsOnInsert: true }
+    );
+    console.log(`✅ IPN saved: ${orderRef} (${verify.matched}) items=${items.length} status=${status} shipped=${shipped}`);
+    return new Response("OK", { status: 200 });
+  } catch (err) {
+    console.error("❌ DB error saving order", err);
+    return NextResponse.json({ error: "DB save failed" }, { status: 500 });
   }
-
-  return new Response("OK", { status: 200 });
 }
 
 export function GET() {

@@ -48,7 +48,12 @@ const OrderSchema = new mongoose.Schema({
     country: {
         type: String,
         required: true,
+    },
+    status: { 
+        type: String,
+        default: "PENDING" 
     }
+
 }, { timestamps: true });
 
 
