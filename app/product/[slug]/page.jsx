@@ -145,7 +145,7 @@ export default function ProductPage() {
   // Large preview
   const handlePreviewImage = () => setPreviewImage(main);
 
-  if (loading) return <div className="flex items-center justify-center w-full h-screen bg-black"><Loading /></div>;
+  if (loading) return <div className="flex items-center justify-center bg-black"><Loading /></div>;
   if (notFound) return <NotFound />;
 
   const discountedPrice = product.price - product.discount;
