@@ -1,202 +1,137 @@
 import crypto from "crypto";
-import { NextResponse } from "next/server";
 import DbConnect from "@/lib/db";
 import Order from "@/models/order";
 
-// Load env vars
-const SECRET_WORD = process.env.TCO_SECRET_WORD?.trim() || "";
-const SELLER_ID   = process.env.TCO_SELLER_ID?.trim() || "";
+const IPN_SECRET = process.env.TWOCHECKOUT_IPN_SECRET; // HMAC key
+const SECRET_WORD = process.env.TWOCHECKOUT_SECRET_WORD; // legacy MD5 key
 
-// ---------- Signature helpers ----------
-function buildSortedDataString(payload) {
-  return Object.keys(payload)
-    .sort()
-    .filter((k) => !["HASH", "hash", "signature", "SIGNATURE"].includes(k))
-    .map((k) => `${k}=${payload[k]}`)
-    .join("");
-}
-
-// Legacy MD5: md5(SecretWord + SellerId + REFNO + TOTAL)
-function md5Legacy(payload) {
-  const ref =
-    payload["REFNO"] || payload["REFNOEXT"] || payload["ORDERNO"] || "";
-  const total =
-    payload["PAYMENTTOTAL"] ||
-    payload["TOTAL"] ||
-    payload["IPN_TOTALGENERAL"] ||
-    payload["ORDER_TOTAL"] ||
-    "";
-  const raw = `${SECRET_WORD}${SELLER_ID}${ref}${total}`;
-  return crypto.createHash("md5").update(raw).digest("hex").toUpperCase(); // ✅ force uppercase
-}
-
-function hmac(payload, alg) {
-  const data = buildSortedDataString(payload);
-  return crypto.createHmac(alg, SECRET_WORD).update(data).digest("hex");
-}
-
-function hashNoKey(payload, alg) {
-  const data = buildSortedDataString(payload);
-  return crypto.createHash(alg).update(data).digest("hex");
-}
-
-// Try multiple algorithms to match received signature
-function verifySignature(payload) {
-  const received =
-    (payload.HASH || payload.hash || payload.signature || payload.SIGNATURE || "").toString().trim();
-
-  if (!received) return { ok: false, reason: "Missing signature field" };
-
-  const candidates = [];
-
-  // 1) Legacy MD5 (HASH)
-  candidates.push({ alg: "md5-legacy", value: md5Legacy(payload) });
-
-  // 2) HMAC variants
-  ["sha256", "sha512"].forEach((alg) => {
-    try {
-      candidates.push({ alg: `hmac-${alg}`, value: hmac(payload, alg) });
-    } catch {}
-  });
-
-  // 3) Hash-only fallback
-  ["sha256", "sha512", "md5"].forEach((alg) => {
-    try {
-      candidates.push({ alg, value: hashNoKey(payload, alg) });
-    } catch {}
-  });
-
-  const recLower = received.toLowerCase();
-  const hit = candidates.find((c) => c.value.toLowerCase() === recLower);
-
-  return hit
-    ? { ok: true, matched: hit.alg }
-    : { ok: false, reason: "No algorithm matched", tried: candidates.map((c) => c.alg) };
-}
-
-// ---------- Helpers ----------
-function toInt(v, d = 0) {
-  const n = parseInt(v, 10);
-  return Number.isFinite(n) ? n : d;
-}
-function toFloat(v, d = 0) {
-  const n = parseFloat(v);
-  return Number.isFinite(n) ? n : d;
-}
-
-function extractProducts(payload) {
-  const count = toInt(payload["IPN_TOTALGENERALITEMS"] ?? payload["IPN_TOTALGENERAL"] ?? 0, 0);
-
-  if (count > 0 && payload[`IPN_PID[0]`]) {
-    const items = [];
-    for (let i = 0; i < count; i++) {
-      items.push({
-        pid: payload[`IPN_PID[${i}]`] || "",
-        name: payload[`IPN_NAME[${i}]`] || "",
-        quantity: toInt(payload[`IPN_QTY[${i}]`] || 1, 1),
-        price: toFloat(payload[`IPN_PRICE[${i}]`] || 0, 0),
-      });
-    }
-    return items;
+// ----- Helpers ----- //
+function byteLength(str) {
+  let s = str.length;
+  for (let i = str.length - 1; i >= 0; i--) {
+    const code = str.charCodeAt(i);
+    if (code > 0x7f && code <= 0x7ff) s++;
+    else if (code > 0x7ff && code <= 0xffff) s += 2;
+    if (code >= 0xdc00 && code <= 0xdfff) i--;
   }
+  return s;
+}
 
-  if (payload["PRODUCTID"] || payload["PRODUCTNAME"]) {
-    return [
-      {
-        pid: payload["PRODUCTID"] || payload["PRODUCTCODE"] || "",
-        name: payload["PRODUCTNAME"] || "",
-        quantity: toInt(payload["QUANTITY"] || 1, 1),
-        price: toFloat(payload["PRICE"] || payload["PAYMENTAMOUNT"] || 0, 0),
-      },
-    ];
+function buildHashString(payload) {
+  let hashString = "";
+  Object.keys(payload).forEach((key) => {
+    if (key === "HASH") return;
+    const val = payload[key].toString();
+    const len = byteLength(val);
+    if (len > 0) hashString += len + val;
+  });
+  hashString += SECRET_WORD;
+  return hashString;
+}
+
+function verifyMd5(payload) {
+  if (!payload.HASH) return false;
+  const hashString = buildHashString(payload);
+  const calculated = crypto.createHash("md5").update(hashString).digest("hex").toUpperCase();
+  return calculated === payload.HASH.toUpperCase();
+}
+
+function verifyHmac(payload, receivedSignature) {
+  if (!receivedSignature) return false;
+  const jsonData = JSON.stringify(payload);
+  const computed = crypto.createHmac("sha256", IPN_SECRET).update(jsonData).digest("hex");
+  return computed.toLowerCase() === receivedSignature.toLowerCase();
+}
+
+// Normalize products for schema
+function normalizeProducts(payload) {
+  if (payload.Items && Array.isArray(payload.Items)) {
+    return payload.Items.map((item) => ({
+      pid: item.ProductId || item.Code,
+      code: item.Code || item.ProductId,
+      name: item.Name,
+      qty: Number(item.Quantity || 1),
+      price: Number(item.Price || 0),
+    }));
+  } else if (Array.isArray(payload["IPN_PID[]"])) {
+    return payload["IPN_PID[]"].map((pid, i) => ({
+      pid,
+      code: payload["IPN_PCODE[]"]?.[i] || pid,
+      name: payload["IPN_PNAME[]"]?.[i] || "",
+      qty: Number(payload["IPN_QTY[]"]?.[i] || 1),
+      price: Number(payload["IPN_PRICE[]"]?.[i] || 0),
+    }));
   }
-
   return [];
 }
 
-function statusInfo(raw) {
-  const s = String(raw || "").toUpperCase();
-  if (["COMPLETE", "CONFIRMED"].includes(s)) return { status: s, shipped: true };
-  return { status: s || "PENDING", shipped: false };
-}
-
-// ---------- Route handlers ----------
+// ----- API POST handler ----- //
 export async function POST(req) {
-  await DbConnect();
-
-  const ct = req.headers.get("content-type") || "";
-  let payload = {};
-  if (ct.includes("application/json")) {
-    payload = await req.json();
-  } else {
-    const formData = await req.formData();
-    for (const [k, v] of formData.entries()) payload[k] = v;
-  }
-
-  const verify = verifySignature(payload);
-  if (!verify.ok) {
-    console.error("❌ Invalid signature", verify, { received: payload.HASH || payload.signature });
-    return NextResponse.json({ error: "Invalid signature" }, { status: 403 });
-  }
-
-  const orderRef = payload["REFNOEXT"] || payload["REFNO"] || payload["ORDERNO"] || "";
-  const { status, shipped } = statusInfo(payload["ORDERSTATUS"]);
-  const items = extractProducts(payload);
-
-  const gatewayTotal =
-    payload["PAYMENTTOTAL"] ||
-    payload["TOTAL"] ||
-    payload["ORDER_TOTAL"] ||
-    payload["IPN_TOTALGENERAL"] ||
-    null;
-
-  const computedTotal = items.reduce(
-    (sum, it) => sum + (Number(it.price) || 0) * (Number(it.quantity) || 0),
-    0
-  );
-  const orderprice = toFloat(gatewayTotal ?? computedTotal, 0);
-
-  const addressParts = [
-    payload["BILLINGADDRESS"],
-    payload["BILLINGADDRESS2"],
-    payload["CITY"],
-    payload["STATE"],
-  ].filter(Boolean);
-
-  const orderDoc = {
-    orderid: orderRef,
-    name: payload["BILLINGNAME"] || `${payload["FNAME"] || ""} ${payload["LNAME"] || ""}`.trim() || "Unknown",
-    userid:
-      payload["EXTERNAL_CUSTOMER_REFERENCE"] ||
-      payload["CLIENTID"] ||
-      payload["CUSTOMERID"] ||
-      "guest",
-    products: items,
-    email: payload["EMAIL"] || payload["BILLINGEMAIL"] || "",
-    shipped,
-    dhltracking: "",
-    orderprice,
-    shippingaddress: addressParts.join(", ") || "",
-    contactno: payload["PHONE"] || payload["PHONENUMBER"] || "",
-    zip: payload["ZIPCODE"] || payload["ZIP"] || "",
-    country: payload["COUNTRY"] || payload["BILLINGCOUNTRY"] || "",
-    status,
-  };
-
   try {
-    await Order.findOneAndUpdate(
-      { orderid: orderRef },
-      orderDoc,
-      { upsert: true, new: true, setDefaultsOnInsert: true }
-    );
-    console.log(`✅ IPN saved: ${orderRef} (matched=${verify.matched}) items=${items.length} status=${status}`);
+    await DbConnect ();
+    let payload = {};
+    let isLegacy = false;
+
+    const contentType = req.headers.get("content-type") || "";
+    if (contentType.includes("application/json")) {
+      payload = await req.json();
+    } else {
+      const formData = await req.formData();
+      formData.forEach((value, key) => (payload[key] = value));
+      isLegacy = true;
+    }
+
+    // Verify signature
+    let valid = false;
+    if (isLegacy) valid = verifyMd5(payload);
+    else valid = verifyHmac(payload, req.headers.get("signature"));
+
+    if (!valid) {
+      console.error("❌ Invalid signature", payload.HASH || req.headers.get("signature"));
+      return new Response("Invalid signature", { status: 400 });
+    }
+
+    // Build order data
+    const orderData = {
+      orderid: payload.REFNO || payload.ReferenceNo,
+      name: (
+        (payload.FIRSTNAME || payload.BillingDetails?.FirstName || "") +
+        " " +
+        (payload.LASTNAME || payload.BillingDetails?.LastName || "")
+      ).trim(),
+      userid: payload.SHOPPER_REFERENCE_NUMBER || payload.CustomerReference || "guest",
+      products: normalizeProducts(payload),
+      email: payload.CUSTOMEREMAIL || payload.BillingDetails?.Email || "",
+      orderprice: Number(payload.IPN_TOTALGENERAL || payload.Total || 0),
+      shippingaddress: (
+        (payload.ADDRESS1 || payload.BillingDetails?.Address1 || "") +
+        ", " +
+        (payload.CITY || payload.BillingDetails?.City || "") +
+        ", " +
+        (payload.COUNTRY || payload.BillingDetails?.Country || "")
+      ),
+      contactno: payload.PHONE || payload.BillingDetails?.Phone || "",
+      zip: payload.ZIPCODE || payload.BillingDetails?.Zip || "",
+      country: payload.COUNTRY || payload.BillingDetails?.Country || "",
+      status: payload.ORDERSTATUS || payload.Status || "PENDING",
+      shipped: false, // default to false for all new orders
+      dhltracking: "",
+    };
+
+    await Order.findOneAndUpdate({ orderid: orderData.orderid }, orderData, {
+      upsert: true,
+      new: true,
+    });
+
+    console.log(`✅ Order saved: ${orderData.orderid}, shipped=${orderData.shipped}`);
     return new Response("OK", { status: 200 });
   } catch (err) {
-    console.error("❌ DB error saving order", err);
-    return NextResponse.json({ error: "DB save failed" }, { status: 500 });
+    console.error("❌ IPN error", err);
+    return new Response("Server error", { status: 500 });
   }
 }
 
+// Optional GET test
 export function GET() {
-  return new Response("2Checkout IPN Listener Active", { status: 200 });
+  return new Response("2Checkout/Verifone IPN Listener Active", { status: 200 });
 }
