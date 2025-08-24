@@ -1,21 +1,13 @@
 import mongoose from 'mongoose';
 
 const OrderSchema = new mongoose.Schema({
-    orderid: {
-        type: String,
-        unique: true,
-        required: true,
-    },
+    orderid: { type: String, required: true, unique: true },
     name: {
         type: String,
         required: true,
     },
     userid: {
         type: String,
-        required: true,  
-    },
-    products: {
-        type: [Object],
         required: true,  
     },
     email: {

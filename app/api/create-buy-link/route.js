@@ -1,9 +1,15 @@
 import { NextResponse } from 'next/server';
 import crypto from 'crypto';
+import { cookies } from 'next/headers'
+import { verifyToken } from "@/lib/auth";
 
 export async function POST(req) {
   try {
+    const cookieStore = await cookies();
+    const token = cookieStore.get("token")?.value;
+    const userid = verifyToken(token);
     const { items } = await req.json();
+
 
     if (!items || !Array.isArray(items) || items.length === 0) {
       return NextResponse.json({ error: 'No items provided' }, { status: 400 });
@@ -22,7 +28,7 @@ export async function POST(req) {
 
     const signature = crypto.createHash('sha256').update(signatureString).digest('hex');
 
-    const buyUrl = `https://secure.2checkout.com/checkout/buy?merchant=${merchant}&tpl=default&return-type=redirect&return-url=${encodeURIComponent(returnUrl)}&prod=${encodeURIComponent(prodList)}&qty=${encodeURIComponent(qtyList)}&signature=${signature}`;
+    const buyUrl = `https://secure.2checkout.com/checkout/buy?merchant=${merchant}&tpl=default&return-type=redirect&return-url=${encodeURIComponent(returnUrl)}&prod=${encodeURIComponent(prodList)}&qty=${encodeURIComponent(qtyList)}&ustomer_external_id=${encodeURIComponent(userid)}&signature=${signature}`;
 
     return NextResponse.json({ url: buyUrl });
   } catch (err) {
