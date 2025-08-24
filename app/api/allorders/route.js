@@ -21,7 +21,7 @@ export async function GET() {
   }
 
   try {
-    const orders = await Order.find({}).sort({ createdAt: -1 });
+    const orders = await Order.find({}).sort({ createdAt:-1});
 
     return NextResponse.json(orders, { status: 200 });
   } catch (err) {

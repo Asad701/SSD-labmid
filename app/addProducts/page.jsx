@@ -1377,6 +1377,8 @@ function OrderCard({ order, onAddTracking }) {
 
   return (
     <div className='bg-white p-4 rounded-xl shadow-md w-full  flex-col gap-3 border border-blue-100'>
+      <div className='text-blue-800 font-semibold text-lg'>Order date and time</div>
+      <div className='text-center'><strong> {convertToPKT(order.createdAt)}</strong></div> 
       <div className='text-blue-800 font-semibold text-lg'>🧾 Order Details</div>
       <div className='grid grid-cols-1 md:grid-cols-2 gap-2'>
         <div><strong>Order ID:</strong> {order.orderid}</div>
@@ -1412,3 +1414,16 @@ function OrderCard({ order, onAddTracking }) {
     </div>
   );
 }
+function convertToPKT(utcTimestamp) {
+  const date = new Date(utcTimestamp);
+  const pktOffsetMs = 5 * 60 * 60 * 1000;
+  const pktDate = new Date(date.getTime() + pktOffsetMs);
+  const yyyy = pktDate.getFullYear();
+  const mm = String(pktDate.getMonth() + 1).padStart(2, '0');
+  const dd = String(pktDate.getDate()).padStart(2, '0');
+  const hh = String(pktDate.getHours()).padStart(2, '0');
+  const min = String(pktDate.getMinutes()).padStart(2, '0');
+  const ss = String(pktDate.getSeconds()).padStart(2, '0');
+  return `${yyyy}-${mm}-${dd} ${hh}:${min}:${ss} PKT`;
+}
+
