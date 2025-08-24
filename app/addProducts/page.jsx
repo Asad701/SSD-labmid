@@ -903,13 +903,13 @@ export default function AdminDashboard() {
           </h1>
           <div className="w-full md:w-[60%] p-6 bg-blue-100 rounded-xl flex justify-evenly items-center shadow">
             <button
-              className={`bg-blue-500 hover:bg-blue-600 transition text-white rounded-lg px-6 py-3 ${select === 'shipped' ? 'ring-2 ring-white' : ''}`}
+              className={`bg-blue-500 hover:bg-blue-600 transition text-white rounded-lg text-md px-6 py-3 ${select === 'shipped' ? 'ring-2 ring-white' : ''}`}
               onClick={() => handleShipped('shipped')}
             >
               Shipped Orders
             </button>
             <button
-              className={`bg-blue-500 hover:bg-blue-600 transition text-white rounded-lg px-6 py-3 ${select === 'notshipped' ? 'ring-2 ring-white' : ''}`}
+              className={`bg-blue-500 hover:bg-blue-600 transition text-white rounded-lg text-md px-6 py-3 ${select === 'notshipped' ? 'ring-2 ring-white' : ''}`}
               onClick={() => handleShipped('notshipped')}
             >
               Not Shipped Yet
@@ -1376,7 +1376,7 @@ function OrderCard({ order, onAddTracking }) {
   };
 
   return (
-    <div className='bg-white p-4 rounded-xl shadow-md w-full overflow-auto flex flex-col gap-3 border border-blue-100'>
+    <div className='bg-white p-4 rounded-xl shadow-md w-full  flex-col gap-3 border border-blue-100'>
       <div className='text-blue-800 font-semibold text-lg'>🧾 Order Details</div>
       <div className='grid grid-cols-1 md:grid-cols-2 gap-2'>
         <div><strong>Order ID:</strong> {order.orderid}</div>
