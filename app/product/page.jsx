@@ -13,7 +13,6 @@ import NotFound from '../components/NotFound';
 import Image from 'next/image';
 
 export default function Product() {
-  const [cat, setCat] = useState('');
   const [allProducts, setAllProducts] = useState([]);
   const [products, setProducts] = useState([]);
   const [notFoundState, setNotFoundState] = useState(false);
@@ -21,48 +20,49 @@ export default function Product() {
   const [aside, setAside] = useState(true);
   const [order, setOrder] = useState('inc');
   const [view, setView] = useState('grid');
-  const [total , setTotal] = useState(0);
+  const [total, setTotal] = useState(0);
+  const [page, setPage] = useState(1);
+
   const router = useRouter();
+
   const [filters, setFilters] = useState({
     category: '',
     maxPrice: 1449,
   });
-  const [page, setPage] = useState(1);
 
   const nextPage = () => {
     if (page < Math.ceil(total / 12)) {
       setPage(page + 1);
-    }  
+    }
   };
 
   const prevPage = () => {
     if (page > 1) {
       setPage(page - 1);
-    }  
+    }
   };
 
-  // Read category from URL on client
+  // Read category from URL when component mounts
   useEffect(() => {
     if (typeof window !== "undefined") {
       const params = new URLSearchParams(window.location.search);
       const category = params.get("category") || "";
-      setCat(category);
       setFilters((prev) => ({ ...prev, category }));
     }
-  }, [router]); 
+  }, [router]);
 
-
-  // Fetch products whenever category changes
+  // Fetch products whenever filters.category or page changes
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
       setNotFoundState(false);
-      
 
       try {
-        const res = await fetch(`/api/products?category=${encodeURIComponent(cat || '')}&page=${encodeURIComponent(page)}`, { cache: 'no-store' });
+        const res = await fetch(
+          `/api/products?category=${encodeURIComponent(filters.category || '')}&page=${encodeURIComponent(page)}`,
+          { cache: 'no-store' }
+        );
         const data = await res.json();
-        
 
         if (Array.isArray(data.products) && data.products.length > 0) {
           setAllProducts(data.products);
@@ -79,18 +79,21 @@ export default function Product() {
     };
 
     fetchData();
-  }, [cat,page]);
 
-  // Apply filters and sorting
+    // keep URL in sync with filters
+    router.push(
+      `/product?category=${encodeURIComponent(filters.category || '')}&page=${encodeURIComponent(page)}`,
+      { scroll: false }
+    );
+  }, [filters.category, page, router]);
+
+  // Apply price filter + sorting
   useEffect(() => {
     let filtered = [...allProducts];
 
-    if (filters.category) {
-      router.push(`/product?category=${encodeURIComponent(filters.category)}&page=${encodeURIComponent(page)}`, { scroll: false });
-      router.refresh();
-    }
-
-    filtered = filtered.filter(p => p.price - (p.discount || 0) <= filters.maxPrice);
+    filtered = filtered.filter(
+      (p) => p.price - (p.discount || 0) <= filters.maxPrice
+    );
 
     if (order === 'inc') filtered.sort((a, b) => a.price - b.price);
     else if (order === 'dec') filtered.sort((a, b) => b.price - a.price);
@@ -99,22 +102,30 @@ export default function Product() {
     else if (order === 'pop') filtered.sort((a, b) => b.sellingcount - a.sellingcount);
 
     setProducts(filtered);
-  }, [filters, order, allProducts]);
+  }, [filters.maxPrice, order, allProducts]);
 
   const handleAside = () => setAside(!aside);
   const handleOrder = (type) => setOrder(type);
   const handleView = (type) => setView(type);
 
   if (notFoundState && !loading) return <NotFound />;
-  if (loading) return <div className="flex items-center justify-center w-full h-full bg-black"><Loading /></div>;
+  if (loading)
+    return (
+      <div className="flex items-center justify-center w-full h-full bg-black">
+        <Loading />
+      </div>
+    );
 
   return (
     <main className="relative flex gap-2 w-full">
+      {/* AsideBar for large screens */}
       {!aside && (
         <div className="hidden lg:block md:block lg:w-1/4 md:w-1/4">
           <AsideBar setFilters={setFilters} filters={filters} />
         </div>
       )}
+
+      {/* AsideBar as overlay for mobile */}
       {!aside && (
         <div className="lg:hidden block w-screen z-15 absolute left-0 bg-gray-100">
           <button
@@ -133,14 +144,25 @@ export default function Product() {
             className="relative montserrat-font flex justify-center items-center w-[70px] bg-black text-white rounded-full"
             onClick={handleAside}
           >
-            <Image src={aside ? '/filterW.svg' : '/filterCW.svg'} alt="filter" width={30} height={30} />
+            <Image
+              src={aside ? '/filterW.svg' : '/filterCW.svg'}
+              alt="filter"
+              width={30}
+              height={30}
+            />
           </button>
-          <FilterBar total={products.length} setOrder={handleOrder} setViewType={handleView} />
+          <FilterBar
+            total={products.length}
+            setOrder={handleOrder}
+            setViewType={handleView}
+          />
         </div>
 
         {products.length > 0 && (
           <ProductsGrid items={products} view={view} />
         )}
+
+        {/* Pagination */}
         <div className="flex justify-center items-center gap-4 mt-6">
           {/* Prev Button */}
           <motion.div whileTap={{ scale: 0.9 }}>
@@ -168,7 +190,7 @@ export default function Product() {
           {/* Next Button */}
           <motion.div whileTap={{ scale: 0.9 }}>
             <button
-              disabled={page >= 4}
+              disabled={page >= Math.ceil(total / 12)}
               onClick={nextPage}
               className="flex items-center px-4 py-2 rounded-2xl border border-gray-300 shadow-md bg-white text-gray-700 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
             >
@@ -178,10 +200,6 @@ export default function Product() {
           </motion.div>
         </div>
       </div>
-
     </main>
   );
 }
-
-
-
