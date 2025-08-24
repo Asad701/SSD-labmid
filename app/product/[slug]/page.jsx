@@ -53,15 +53,14 @@ export default function ProductPage() {
           return;
         }
         const data = await res.json();
-        if (!data.length) setNotFound(true);
+        if (!data.products.length) setNotFound(true);
         else {
-          setProduct(data[0]);
-          setMain(data[0].mainimage);
-          setGallery(data[0].gallery);
-          fetchReviews(data[0].productid);
+          setProduct(data.products[0]);
+          setMain(data.products[0].mainimage);
+          setGallery(data.products[0].gallery);
+          fetchReviews(data.products[0].productid);
         }
       } catch (err) {
-        console.error(err);
         setNotFound(true);
       } finally {
         setLoading(false);
