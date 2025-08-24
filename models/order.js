@@ -47,7 +47,7 @@ const OrderSchema = new mongoose.Schema({
         required: true,
     },
     checkoutDHL:{
-        trype:String,
+        type:String,
         default:""
     },
     status: { 

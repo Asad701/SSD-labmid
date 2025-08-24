@@ -59,7 +59,7 @@ export async function POST(req) {
       country: payload.COUNTRY || "",
       status: payload.ORDERSTATUS || "PENDING",
       shipped: false,
-      checkoutDHL:payload.SHIPPING_TRACKING_NO, 
+      checkoutDHL:payload.SHIPPING_TRACKING_NO || "", 
       dhltracking: "",
     };
 
