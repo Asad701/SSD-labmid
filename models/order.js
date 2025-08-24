@@ -1,7 +1,12 @@
 import mongoose from 'mongoose';
 
 const OrderSchema = new mongoose.Schema({
-    orderid: { type: String, required: true, unique: true },
+    orderid: {
+        type: String,
+        unique: true,
+        required: true,
+    },
+    
     name: {
         type: String,
         required: true,
@@ -40,6 +45,10 @@ const OrderSchema = new mongoose.Schema({
     country: {
         type: String,
         required: true,
+    },
+    checkoutDHL:{
+        trype:String,
+        default:""
     },
     status: { 
         type: String,

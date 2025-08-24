@@ -21,42 +21,7 @@ export async function GET() {
   }
 
   try {
-    const orders = await Order.aggregate([
-      { $unwind: "$products" },
-      {
-        $lookup: {
-          from: "products",
-          localField: "products.pid",
-          foreignField: "productid",
-          as: "productInfo",
-        },
-      },
-      { $unwind: "$productInfo" },
-      {
-        $addFields: {
-          "products.details": "$productInfo",
-        },
-      },
-      {
-        $group: {
-          _id: "$_id",
-          orderid: { $first: "$orderid" },
-          shippingaddress: { $first: "$shippingaddress" },
-          userid: { $first: "$userid" },
-          name: { $first: "$name" },
-          email: { $first: "$email" },
-          contactno: { $first: "$contactno" },
-          products: { $push: "$products" },
-          orderprice: { $first: "$orderprice" },
-          status: { $first: "$status" },
-          dhltracking: { $first: "$dhltracking" },
-          shipped: { $first: "$shipped" },
-          createdAt: { $first: "$createdAt" },
-          modifiedAt: { $first: "$updatedAt" },
-        },
-      },
-      { $sort: { createdAt: -1 } },
-    ]);
+    const orders = await Order.find({}).sort({ createdAt: -1 });
 
     return NextResponse.json(orders, { status: 200 });
   } catch (err) {

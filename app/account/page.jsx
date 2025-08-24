@@ -81,7 +81,7 @@ export default function AccountPage() {
       <div className="py-7 px-4 mt-4 flex flex-col rounded-xl gap-3 w-full md:w-1/3 bg-blue-800 text-white">
         <button className="montserrat-font bg-blue-600 hover:bg-blue-500 py-4 rounded-full" onClick={() => router.push("/account/myinfo")}>My Profile</button>
         <button className="montserrat-font bg-blue-600 hover:bg-blue-500 py-4 rounded-full" onClick={() => router.push("/cart")}>Your Cart</button>
-        <button className="montserrat-font bg-blue-600 hover:bg-blue-500 py-4 rounded-full" onClick={() => router.push("/account/myorders")}>Orders</button>
+        <button className="montserrat-font bg-blue-600 hover:bg-blue-500 py-4 rounded-full" onClick={() => router.push("https://secure.2co.com/myaccount/?lang=en")}>Orders</button>
         <button className="montserrat-font bg-blue-600 hover:bg-blue-500 py-4 rounded-full" onClick={() => router.push("/favs")}>Your Favourite</button>
         <Link href="/account/edit" className="montserrat-font bg-red-600 hover:bg-red-500 py-4 flex justify-center items-center rounded-full">
           Edit Info

@@ -43,13 +43,6 @@ export async function POST(req) {
       formData.forEach((value, key) => (payload[key] = value));
     }
 
-    // Log the full payload
-    console.log("📥 IPN received:", payload);
-
-    // Normalize products
-    const products = normalizeProducts(payload);
-    console.log("📦 Normalized products:", products);
-
     // Build order data
     const orderData = {
       orderid: payload.REFNO || payload.ReferenceNo || "unknown",
@@ -65,7 +58,8 @@ export async function POST(req) {
       zip: payload.ZIPCODE || "",
       country: payload.COUNTRY || "",
       status: payload.ORDERSTATUS || "PENDING",
-      shipped: false, // default false
+      shipped: false,
+      checkoutDHL:payload.SHIPPING_TRACKING_NO, 
       dhltracking: "",
     };
 

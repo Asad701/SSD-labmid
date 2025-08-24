@@ -1376,12 +1376,16 @@ function OrderCard({ order, onAddTracking }) {
   };
 
   return (
-    <div className='bg-white p-4 rounded-xl shadow-md flex flex-col gap-3 border border-blue-100'>
+    <div className='bg-white p-4 rounded-xl shadow-md w-full overflow-auto flex flex-col gap-3 border border-blue-100'>
       <div className='text-blue-800 font-semibold text-lg'>🧾 Order Details</div>
       <div className='grid grid-cols-1 md:grid-cols-2 gap-2'>
         <div><strong>Order ID:</strong> {order.orderid}</div>
         <div><strong>Total:</strong> ${order.orderprice}</div>
         <div><strong>Shipping Address:</strong> {order.shippingaddress}</div>
+        {order.checkoutDHL &&
+          <div><strong>Status:</strong> {order.checkoutDHL}</div>
+        }
+        <div><strong>Status:</strong> {order.status}</div>
         {order.dhltracking && (
           <>
             <div><strong>DHL Tracking:</strong> {order.dhltracking}</div>
@@ -1397,21 +1401,6 @@ function OrderCard({ order, onAddTracking }) {
         <div><strong>Email:</strong> {order.email}</div>
         <div><strong>Contact:</strong> {order.contactno}</div>
       </div>
-
-      <div className='text-blue-800 font-semibold mt-2 text-lg'>🛍️ Products</div>
-      <div className='flex gap-4 overflow-x-auto scrollbar-hide'>
-        {order.products.map((pro, i) => (
-          <div key={i} className='flex gap-2 bg-blue-100 p-2 rounded-lg min-w-[180px] shadow'>
-            <Image src={`/${pro.details.mainimage}`} width={50} height={60} alt='product' />
-            <div className='flex flex-col text-sm'>
-              <div><strong>{pro.title}</strong></div>
-              <div>ID: {pro.pid}</div>
-              <div>Qty: {pro.count}</div>
-            </div>
-          </div>
-        ))}
-      </div>
-
       {!order.shipped && onAddTracking && (
         <button
           className="mt-4 w-fit px-4 py-5 bg-green-600 hover:bg-green-700 text-white rounded-lg"

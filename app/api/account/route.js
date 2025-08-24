@@ -72,49 +72,9 @@ export async function GET(request) {
     ]);
     return NextResponse.json(favs, { status: 200 });
 
-  } else if (getType === "orders") {
-    const orders = await Order.aggregate([
-      { $match: { userid: decoded.userid } },
-      { $unwind: "$products" },
-      {
-        $lookup: {
-          from: "products",
-          localField: "products.pid",
-          foreignField: "productid",
-          as: "productInfo"
-        }
-      },
-      { $unwind: "$productInfo" },
-      {
-        $addFields: {
-          "products.details": "$productInfo"
-        }
-      },
-      {
-        $group: {
-          _id: "$_id",
-          orderid: { $first: "$orderid" },
-          shippingaddress: { $first: "$shippingaddress" },
-          userid: { $first: "$userid" },
-          name: { $first: "$name" },
-          email: { $first: "$email" },
-          contactno: { $first: "$contactno" },
-          products: { $push: "$products" },
-          orderprice: { $first: "$orderprice" },
-          status: { $first: "$status" },
-          dhltracking: { $first: "$dhltracking" },
-          shipped: { $first: "$shipped" },
-          createdAt: { $first: "$createdAt" },
-          modifiedAt: { $first: "$updatedAt" }
-        }
-      },
-      { $sort: { createdAt: -1 } }
-    ]);
-
-    return NextResponse.json(orders, { status: 200 });
-  }
-
-  return NextResponse.json({ message: "Invalid 'get' parameter" }, { status: 400 });
+  }else{
+      return NextResponse.json({ message: "Invalid parameters" }, { status: 400 });
+  }    
 }
 
 // PATCH user update with image support
