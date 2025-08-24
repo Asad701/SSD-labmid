@@ -2,6 +2,8 @@
 export const dynamic = 'force-dynamic';
 
 import { useEffect, useState } from 'react';
+import { motion } from "framer-motion";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useRouter } from 'next/navigation';
 import ProductsGrid from '../components/ProductsGrid';
 import AsideBar from '../components/AsideBar';
@@ -19,11 +21,25 @@ export default function Product() {
   const [aside, setAside] = useState(true);
   const [order, setOrder] = useState('inc');
   const [view, setView] = useState('grid');
+  const [total , setTotal] = useState(0);
   const router = useRouter();
   const [filters, setFilters] = useState({
     category: '',
     maxPrice: 1449,
   });
+  const [page, setPage] = useState(1);
+
+  const nextPage = () => {
+    if (page < Math.ceil(total / 12)) {
+      setPage(page + 1);
+    }  
+  };
+
+  const prevPage = () => {
+    if (page > 1) {
+      setPage(page - 1);
+    }  
+  };
 
   // Read category from URL on client
   useEffect(() => {
@@ -44,11 +60,13 @@ export default function Product() {
       
 
       try {
-        const res = await fetch(`/api/products?category=${encodeURIComponent(cat || '')}`, { cache: 'no-store' });
+        const res = await fetch(`/api/products?category=${encodeURIComponent(cat || '')}&page=${encodeURIComponent(page)}`, { cache: 'no-store' });
         const data = await res.json();
+        
 
-        if (Array.isArray(data) && data.length > 0) {
-          setAllProducts(data);
+        if (Array.isArray(data.products) && data.products.length > 0) {
+          setAllProducts(data.products);
+          setTotal(data.total);
         } else {
           setAllProducts([]);
           setNotFoundState(true);
@@ -61,14 +79,14 @@ export default function Product() {
     };
 
     fetchData();
-  }, [cat]);
+  }, [cat,page]);
 
   // Apply filters and sorting
   useEffect(() => {
     let filtered = [...allProducts];
 
     if (filters.category) {
-      router.push(`/product?category=${encodeURIComponent(filters.category)}`, { scroll: false });
+      router.push(`/product?category=${encodeURIComponent(filters.category)}&page=${encodeURIComponent(page)}`, { scroll: false });
       router.refresh();
     }
 
@@ -123,7 +141,47 @@ export default function Product() {
         {products.length > 0 && (
           <ProductsGrid items={products} view={view} />
         )}
+        <div className="flex justify-center items-center gap-4 mt-6">
+          {/* Prev Button */}
+          <motion.div whileTap={{ scale: 0.9 }}>
+            <button
+              disabled={page <= 1}
+              onClick={prevPage}
+              className="flex items-center px-4 py-2 rounded-2xl border border-gray-300 shadow-md bg-white text-gray-700 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <ChevronLeft className="mr-2 h-4 w-4" />
+              Previous
+            </button>
+          </motion.div>
+
+          {/* Fancy Page Indicator */}
+          <motion.div
+            key={page} // animates when page changes
+            initial={{ scale: 0.7, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ type: "spring", stiffness: 200 }}
+            className="px-6 py-2 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 text-white font-semibold shadow-lg"
+          >
+            Page {page}
+          </motion.div>
+
+          {/* Next Button */}
+          <motion.div whileTap={{ scale: 0.9 }}>
+            <button
+              disabled={page >= 4}
+              onClick={nextPage}
+              className="flex items-center px-4 py-2 rounded-2xl border border-gray-300 shadow-md bg-white text-gray-700 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Next
+              <ChevronRight className="ml-2 h-4 w-4" />
+            </button>
+          </motion.div>
+        </div>
       </div>
+
     </main>
   );
 }
+
+
+

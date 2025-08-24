@@ -118,7 +118,7 @@ export default function Nav() {
           home page
         </Link>
       </pre>
-      <div className="montserrat-font flex justify-center bg-white text-black text-sm py-1" >💥 FREE Shipping on ALL Orders — No Minimum Required! 🚚✨</div>
+      <div className="montserrat-font flex justify-center bg-white text-black text-sm py-1" >💥 FREE Shipping on ALL Orders 🚚✨</div>
 
       <nav className="montserrat-font sticky top-0 z-20 bg-black flex flex-col md:flex-row justify-evenly items-center w-full h-auto py-1 px-4 gap-1 md:gap-0">
         <div className=" montserrat-font relative w-[150px] h-[120px]">

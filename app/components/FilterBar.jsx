@@ -20,7 +20,7 @@ export default function FilterBar({ total, setOrder, setViewType }) {
         <select
           id="sort"
           onChange={handleSortChange}
-          className="border bg-gray-200 rounded  montserrat-font px-2 py-1 text-sm italic font-bold text-black"
+          className="border bg-gray-200 rounded  montserrat-font px-1 py-1 text-sm italic font-bold text-black"
         >
           <option value="pop" className='montserrat-font'>Popularity: High to Low</option>
           <option value="inc" className='montserrat-font'>Price: Low to High</option>

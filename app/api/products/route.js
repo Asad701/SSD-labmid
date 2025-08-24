@@ -8,34 +8,52 @@ import fs from "fs/promises";
 import { cookies } from "next/headers";
 
 // -------------------------
-// GET /api/products?search=abc OR ?category=xyz
+// GET /api/products?search=abc OR ?category=xyz&page=1
 // -------------------------
+
 export async function GET(request) {
   await DbConnect();
   const { searchParams } = new URL(request.url);
+
   const search = searchParams.get("search");
   const category = searchParams.get("category");
+  const page = parseInt(searchParams.get("page")) || 1;
+  const limit = 12;
 
   try {
-    let products;
+    let query = {};
+
+    // 🔍 Search filter
     if (search) {
-      products = await Product.find({
-                    $or: [
-                      { title: { $regex: search, $options: "i" } },
-                      { productid: { $regex: search, $options: "i" } }
-                    ]
-                  }).sort({ _id: -1 });
-    } else if (category) {
-      products = await Product.find({ category: { $in: [category] } }).sort({_id: -1});
-    } else {
-      products = await Product.find({}).sort({_id: -1});
+      query = {
+        $or: [
+          { title: { $regex: search, $options: "i" } },
+          { productid: { $regex: search, $options: "i" } }
+        ]
+      };
     }
 
-    return NextResponse.json(products, { status: 200 });
+    // 📂 Category filter
+    if (category) {
+      query.category = { $in: [category] };
+    }
+
+    // 📊 Count total matching products
+    const total = await Product.countDocuments(query);
+
+    // 📦 Fetch paginated products
+    const products = await Product.find(query)
+      .sort({ _id: -1 })
+      .skip((page - 1) * limit)
+      .limit(limit);
+
+    return NextResponse.json({ products, total }, { status: 200 });
   } catch (error) {
-    return NextResponse.json({ error: "internal servet error" }, { status: 500 });
+    console.error("GET /api/products error:", error);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
+
 
 // -------------------------
 // POST /api/products (multipart/form-data)
