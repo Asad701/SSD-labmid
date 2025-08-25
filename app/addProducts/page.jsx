@@ -302,7 +302,7 @@ export default function AdminDashboard() {
       try {
         const res = await fetch('/api/products');
         const data = await res.json();
-        res.ok ? setProducts(data) : setMessage(data.message || 'Failed to load products');
+        res.ok ? setProducts(data.products) : setMessage(data.message || 'Failed to load products');
       } catch {
         setMessage('Error loading products');
       }
@@ -952,7 +952,7 @@ export default function AdminDashboard() {
             {users.map((u) => (
               <div
                 key={u.userid}
-                className="relative flex justify-start bg-gray-200 p-6 rounded-lg gap-20 items-center"
+                className="relative flex flex-col lg:flex-row md:flex-row justify-start bg-gray-200 p-6 rounded-lg gap-20 items-center"
               >
                 <Image
                   src={`/${u.avatar}`}
@@ -999,7 +999,7 @@ export default function AdminDashboard() {
           </div>
 
           {selectedUser ? (
-            <div className="bg-gray-200 p-4 rounded-lg flex gap-4 items-center">
+            <div className="bg-gray-200 p-4 rounded-lg flex flex-col lg:flex-row md:flex-row gap-4 items-center">
               <Image
                 src={`/${selectedUser.avatar}`}
                 alt="User Avatar"
