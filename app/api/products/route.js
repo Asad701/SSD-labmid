@@ -17,7 +17,11 @@ export async function GET(request) {
 
   const search = searchParams.get("search");
   const category = searchParams.get("category");
-  const page = parseInt(searchParams.get("page")) || 1;
+  const page = parseInt(searchParams.get("page"));
+  if(!page){
+    const products = await Product.find().sort({createdAt:-1});
+    return NextResponse.json({ products}, { status: 200 });
+  }
   const limit = 12;
 
   try {
