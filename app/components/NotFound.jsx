@@ -10,7 +10,7 @@ const NotFound = () => {
         className="montserrat-font mt-6 px-4 py-2 bg-gray-700 text-white rounded hover:bg-gray-600"
         onClick={() => window.location.href = '/'}
       >
-        Go Back Home
+        Back to Home Page
       </button>
     </div>
   );

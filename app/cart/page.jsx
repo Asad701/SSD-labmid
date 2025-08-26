@@ -211,7 +211,7 @@ export default function CartPage() {
       )}
 
       {dialog ? (
-        <div className="fixed bottom-3 flex flex-col justify-end  items-center pt-2 right-3 z-30 w-[100px] h-[100px] lg:w-[150px] lg:h-[150px] bg-black text-md lg:text-lg gap-2 text-white">
+        <div className="fixed  flex flex-col justify-end  items-center pt-3 left-3 z-30 w-[100px] h-[100px] md:w-[150px] md:h-[150px]   md:text-lg lg:w-[150px] lg:h-[150px] bg-black text-md lg:text-lg gap-2 text-white">
           <span className="underline">Cart Total</span>
           <span className="text-2xl">${cartTotal}</span>
           <div

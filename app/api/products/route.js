@@ -21,33 +21,30 @@ export async function GET(request) {
   const limit = 12;
 
   try {
-    let query = {};
+    const query = {};
 
-    // 🔍 Search filter
+    // 🔍 Add search filter
     if (search) {
-      query = {
-        $or: [
-          { title: { $regex: search, $options: "i" } },
-          { productid: { $regex: search, $options: "i" } }
-        ]
-      };
+      query.$or = [
+        { productid: { $regex: search, $options: "i" } },
+        { slug: { $regex: search, $options: "i" } },
+        { title: { $regex: search, $options: "i" } },
+      ];
     }
 
-    // 📂 Category filter
+    // 📂 Add category filter (fix for array-based categories)
     if (category) {
       query.category = { $in: [category] };
     }
 
-    // 📊 Count total matching products
     const total = await Product.countDocuments(query);
-
-    // 📦 Fetch paginated products
     const products = await Product.find(query)
       .sort({ _id: -1 })
       .skip((page - 1) * limit)
       .limit(limit);
 
     return NextResponse.json({ products, total }, { status: 200 });
+
   } catch (error) {
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }

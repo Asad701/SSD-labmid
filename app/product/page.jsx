@@ -42,24 +42,21 @@ export default function Product() {
     }
   };
 
-  // Read category from URL when component mounts
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const params = new URLSearchParams(window.location.search);
-      const category = params.get("category") || "";
-      setFilters((prev) => ({ ...prev, category }));
-    }
-  }, [router]);
 
   // Fetch products whenever filters.category or page changes
   useEffect(() => {
     const fetchData = async () => {
+      let category = ""
+      if (typeof window !== "undefined") {
+        const params = new URLSearchParams(window.location.search);
+        category= params.get("category") || "";
+      } 
       setLoading(true);
       setNotFoundState(false);
 
       try {
         const res = await fetch(
-          `/api/products?category=${encodeURIComponent(filters.category || '')}&page=${encodeURIComponent(page)}`,
+          `/api/products?category=${encodeURIComponent(filters.category || category || '')}&page=${encodeURIComponent(page)}`,
           { cache: 'no-store' }
         );
         const data = await res.json();
@@ -70,6 +67,7 @@ export default function Product() {
         } else {
           setAllProducts([]);
           setNotFoundState(true);
+          
         }
       } catch (error) {
         setNotFoundState(true);

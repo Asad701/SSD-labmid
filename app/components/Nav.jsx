@@ -120,7 +120,7 @@ export default function Nav() {
       </pre>
       <div className="montserrat-font flex justify-center bg-white text-black text-sm py-1" >💥 FREE Shipping on ALL Orders 🚚✨</div>
 
-      <nav className="montserrat-font sticky top-0 z-20 bg-black flex flex-col md:flex-row justify-evenly items-center w-full h-auto py-1 px-4 gap-1 md:gap-0">
+      <nav className="montserrat-font sticky top-0 z-20 bg-black flex flex-col  md:flex-row lg:flex-row justify-evenly items-center w-full h-auto py-1 px-4 gap-0 md:gap-0 lg:gap-0">
         <div className=" montserrat-font relative w-[150px] h-[120px]">
           <Image src="/logo.png" fill alt="Logo"/>
         </div>
@@ -233,31 +233,31 @@ export default function Nav() {
          {!menu ? 
           (<div className="montserrat-font w-screen h-screen bg-white text-black z-45 p-5">
             {loggedIn ? (
-                <Link  href="/account"  className="flex items-center w-full border-b py-4 justify-evenly items-center" onClick={()=>{setMenu(!menu)}}>
+                <Link  href="/account"  className="flex items-center w-full border-b py-4 justify-evenly " onClick={()=>{setMenu(!menu)}}>
                   <div className="montserrat-font text-black text-lg">Account</div>
                 </Link>
               ) : (
-                <Link  href="/login"  className=" montserrat-font flex items-center w-full border-b py-4 justify-evenly items-center" onClick={()=>{setMenu(!menu)}}>
+                <Link  href="/login"  className=" montserrat-font flex items-center w-full border-b py-4 justify-evenly " onClick={()=>{setMenu(!menu)}}>
                   <div className="montserrat-font text-black text-lg ">Login</div>
                 </Link>
               )}
 
-                <Link  href="/cart"  className="montserrat-font flex items-center w-full border-b py-4 justify-evenly items-center" onClick={()=>{setMenu(!menu)}}>
+                <Link  href="/cart"  className="montserrat-font flex items-center w-full border-b py-4 justify-evenly " onClick={()=>{setMenu(!menu)}}>
                   <div className="montserrat-font text-black text-lg text-semibold hover:text-bold ">Cart</div>
                 </Link>
-                <Link  href="/favs"  className="montserrat-font flex items-center w-full border-b py-4 justify-evenly items-center" onClick={()=>{setMenu(!menu)}}>
+                <Link  href="/favs"  className="montserrat-font flex items-center w-full border-b py-4 justify-evenly " onClick={()=>{setMenu(!menu)}}>
                   <div className="montserrat-font text-black text-lg text-semibold hover:text-bold">Favourites</div>
                 </Link>
-                <Link  href="/product"  className="montserrat-font flex items-center w-full border-b py-4 justify-evenly items-center" onClick={()=>{setMenu(!menu)}}>
+                <Link  href="/product"  className="montserrat-font flex items-center w-full border-b py-4 justify-evenly " onClick={()=>{setMenu(!menu)}}>
                   <div className="text-black text-lg text-semibold hover:text-bold">Products</div>
                 </Link>
-                <Link  href="/aboutus"  className="montserrat-font flex items-center w-full border-b py-4 justify-evenly items-center" onClick={()=>{setMenu(!menu)}}>
+                <Link  href="/aboutus"  className="montserrat-font flex items-center w-full border-b py-4 justify-evenly " onClick={()=>{setMenu(!menu)}}>
                   <div className="text-black text-lg text-semibold hover:text-bold">About Us</div>
                 </Link>
-                <Link  href="/contactus"  className="montserrat-font flex items-center w-full border-b py-4 justify-evenly items-center " onClick={()=>{setMenu(!menu)}}>
+                <Link  href="/contactus"  className="montserrat-font flex items-center w-full border-b py-4 justify-evenly  " onClick={()=>{setMenu(!menu)}}>
                   <div className="text-black text-lg text-semibold hover:text-bold">Contact Us</div>
                 </Link>
-                <Link  href="/privacy"  className="montserrat-font flex items-center w-full border-b py-4 justify-evenly items-center " onClick={()=>{setMenu(!menu)}}>
+                <Link  href="/privacy"  className="montserrat-font flex items-center w-full border-b py-4 justify-evenly  " onClick={()=>{setMenu(!menu)}}>
                   <div className="text-black text-lg text-semibold hover:text-bold">Privacy Policy</div>
                 </Link>
           </div>):null} )  
