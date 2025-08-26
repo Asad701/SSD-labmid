@@ -42,23 +42,23 @@ export default function Product() {
     }
   };
 
+  
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const category = params.get("category") || '';
+    setFilters((prev) => ({ ...prev, category }));
+  }, []);
+
 
   // Fetch products whenever filters.category or page changes
+
   useEffect(() => {
     const fetchData = async () => {
-      let category = ""
-      if (typeof window !== "undefined") {
-        const params = new URLSearchParams(window.location.search);
-        category= params.get("category") || "";
-      } 
       setLoading(true);
       setNotFoundState(false);
 
       try {
-        const res = await fetch(
-          `/api/products?category=${encodeURIComponent(filters.category || category || '')}&page=${encodeURIComponent(page)}`,
-          { cache: 'no-store' }
-        );
+        const res = await fetch(`/api/products?category=${encodeURIComponent(filters.category)}&page=${page}`, { cache: 'no-store' });
         const data = await res.json();
 
         if (Array.isArray(data.products) && data.products.length > 0) {
@@ -67,7 +67,6 @@ export default function Product() {
         } else {
           setAllProducts([]);
           setNotFoundState(true);
-          
         }
       } catch (error) {
         setNotFoundState(true);
@@ -76,14 +75,13 @@ export default function Product() {
       }
     };
 
-    fetchData();
+    if (filters.category !== '') {
+      fetchData();
+    }
 
-    // keep URL in sync with filters
-    router.push(
-      `/product?category=${encodeURIComponent(filters.category || '')}&page=${encodeURIComponent(page)}`,
-      { scroll: false }
-    );
-  }, [filters.category, page, router]);
+    router.push(`/product?category=${encodeURIComponent(filters.category)}&page=${encodeURIComponent(page)}`, { scroll: false });
+  }, [filters.category, page]);
+
 
   // Apply price filter + sorting
   useEffect(() => {
