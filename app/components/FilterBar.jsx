@@ -1,7 +1,7 @@
 'use client';
 import Image from 'next/image';
 
-export default function FilterBar({ total, setOrder, setViewType }) {
+export default function FilterBar({ result ,total, setOrder, setViewType }) {
   const handleSortChange = (e) => {
     const value = e.target.value;
     setOrder(value);
@@ -10,7 +10,7 @@ export default function FilterBar({ total, setOrder, setViewType }) {
   return (
     <div className="flex flex-wrap montserrat-font items-center justify-between p-2 w-full border mt-1 bg-white rounded-xl ">
       <p className="text-gray-700 font-bold montserrat-font underline italic">
-        <span className="text-md no-underline  montserrat-font text-gray-900">{total}</span> Products
+        <span className="text-md no-underline  montserrat-font text-gray-900">{result} / {total}</span> Products
       </p>
 
       <div className="flex items-center gap-4">

@@ -17,7 +17,7 @@ export default function Videos() {
     <section className="montserrat-font py-8 bg-black text-white">
       <div className="montserrat-font max-w-7xl mx-auto">
         <h2 className="montserrat-font text-4xl text-center font-extrabold">Our Art Work</h2>
-        <div className="montserrat-font flex justify-start items-end gap-10 shadow p-10 overflow-x-auto scrollbar-hide">
+        <div className="montserrat-font flex justify-start items-end gap-10 shadow p-5 overflow-x-auto scrollbar-hide">
           {art.map((url, idx) =>
             url ? (
               <div key={idx} className="montserrat-font relative min-w-[300px] min-h-[200px] w-screen h-[200px] lg:h-[300px] bg-white rounded-xl">

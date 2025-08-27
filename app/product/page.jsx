@@ -42,7 +42,7 @@ export default function Product() {
     }
   };
 
-  
+
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const category = params.get("category") || '';
@@ -74,10 +74,8 @@ export default function Product() {
         setLoading(false);
       }
     };
-
-    if (filters.category !== '') {
       fetchData();
-    }
+
 
     router.push(`/product?category=${encodeURIComponent(filters.category)}&page=${encodeURIComponent(page)}`, { scroll: false });
   }, [filters.category, page]);
@@ -148,7 +146,8 @@ export default function Product() {
             />
           </button>
           <FilterBar
-            total={products.length}
+            result={products.length}
+            total={total}
             setOrder={handleOrder}
             setViewType={handleView}
           />
