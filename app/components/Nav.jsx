@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import Categorybar from "./Catagorybar";
+
 
 export default function Nav() {
   const [loggedIn, setLoggedIn] = useState(false);
@@ -40,10 +40,7 @@ export default function Nav() {
     }
   };
   
-  // HANDLE CATEGORY
-  const HandleCategory =()=>{
-    setCat(!cat)
-  }
+
 
   // CHECK LOGIN
   useEffect(() => {
@@ -264,16 +261,6 @@ export default function Nav() {
       </>    
       }  
       </nav>
-      <div className="bg-black text-white flex justify-center items-center rounded-full my-2 p-2 w-full block lg:hidden md:hidden" onClick={HandleCategory}>
-        {cat ?  "Show Categories" : "Hide Categories"}
-      </div>    
-      {cat ? 
-        <></>:
-        <div className="lg:hidden md:hidden block"><Categorybar/></div>
-      }
-      <div className="hidden md:block lg:block lg:mt-2 md:mt-2">
-        <Categorybar/>
-      </div>
     </>
   );
 }
