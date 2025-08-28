@@ -12,9 +12,9 @@ const Footer = () => {
         
         {/* About */}
         <div>
-          <h3 className="text-xl font-bold mb-4 montserrat-font">About Royal Fold</h3>
+          <h3 className="text-xl font-bold mb-4 montserrat-font">About Royal Fold & Forge</h3>
           <p className="text-gray-700">
-            Royal Fold is your trusted creative partner for exquisite Damascus kitchen and pocket knives. We transform craftsmanship into timeless excellence.
+            Royal Fold & Forge is your trusted creative partner for exquisite Damascus kitchen and pocket knives. We transform craftsmanship into timeless excellence.
           </p>
         </div>
 
@@ -22,9 +22,9 @@ const Footer = () => {
         <div>
           <h3 className="text-xl font-bold mb-4 montserrat-font">Contact</h3>
           <ul className="text-gray-700 space-y-2 montserrat-font">
-            <li>👤 ROYAL FOLD TEAM</li>
+            <li>👤 ROYAL FOLD & FORGE TEAM</li>
             <li>
-              ✉️ <a href="mailto:royalfold001@gmail.com" className="hover:underline hover:text-blue-700">royalfold001@gmail.com</a>
+              ✉️ <a href="mailto:royalfoldforge@gmail.com" className="hover:underline hover:text-blue-700">royalfoldforge@gmail.com</a>
             </li>
           </ul>
         </div>
@@ -53,7 +53,7 @@ const Footer = () => {
           <h3 className="text-xl font-bold mb-4 montserrat-font">Follow Us</h3>
           <div className="flex gap-4 text-gray-700 text-2xl montserrat-font">
             <a
-              href="https://facebook.com"
+              href="https://www.facebook.com/groups/1968129100663452/?ref=share&mibextid=NSMWBT"
               target="_blank"
               rel="noopener noreferrer"
               className="hover:text-blue-600 transition-colors duration-300 montserrat-font"

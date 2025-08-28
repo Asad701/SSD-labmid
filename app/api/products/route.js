@@ -17,7 +17,7 @@ export async function GET(request) {
   const { searchParams } = new URL(request.url, `http://${request.headers.get("host")}`);
   const search = searchParams.get("search");
   const category = searchParams.get("category");
-  const page = parseInt(searchParams.get("page")) || 1;
+  const page = parseInt(searchParams.get("page"));
   const limit = 12;
 
   try {
@@ -45,6 +45,12 @@ export async function GET(request) {
       return NextResponse.json({ products, total }, { status: 200 });
     }
 
+    if (!search && !category && !page) {
+      const total = await Product.countDocuments();
+      const products = await Product.find().sort({ createdAt: -1 })
+      .sort({ createdAt: -1 });
+      return NextResponse.json({ products, total }, { status: 200 });
+    }
     const total = await Product.countDocuments(query);
 
     const products = await Product.find(query)

@@ -4,7 +4,7 @@ import Link from 'next/link';
 
 export default function AboutPage() {
   return (
-    <main className="min-h-screen bg-gradient-to-b from-black via-zinc-900 to-black text-white px-6 py-10">
+    <main className="min-h-screen bg-gradient-to-b from-black via-zinc-900 to-black text-white px-6 py-10 mt-2">
       <div className="max-w-5xl mx-auto">
         <motion.h1
           className="text-5xl font-bold text-center mb-6 bg-gradient-to-r from-yellow-400 to-red-600 text-transparent bg-clip-text"
@@ -60,16 +60,10 @@ export default function AboutPage() {
 
 const team = [
   {
-    name: 'Ustaad Bilal',
-    role: 'Master Bladesmith',
-    image: 'logo.png',
-    bio: 'With over 30 years of experience, Bilal specializes in traditional Damascus folding techniques and ornamental blade detailing.',
-  },
-  {
     name: 'Ustaad Sufyan',
-    role: 'Steel Finishing Expert',
+    role: 'Steel Finishing Expert and Master Bladesmith',
     image: 'logo.png',
-    bio: 'Responsible for etching, polishing, and quality finishing of each handcrafted piece to bring out its unique pattern.',
+    bio: 'With over 30 years of experience, Bilal specializes in traditional Damascus folding techniques and ornamental blade detailing . Responsible for etching, polishing, and quality finishing of each handcrafted piece to bring out its unique pattern.',
   },
   {
     name: 'Asad',

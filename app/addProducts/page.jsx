@@ -482,7 +482,7 @@ export default function AdminDashboard() {
               return;
               
             } else {
-              setProducts(item);
+              setProducts(item.products);
             }
           } catch (err) {
             console.log(err);

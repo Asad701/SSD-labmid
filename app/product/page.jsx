@@ -105,13 +105,13 @@ export default function Product() {
   if (notFoundState && !loading) return <NotFound />;
   if (loading)
     return (
-      <div className="flex items-center justify-center w-full h-full bg-black">
+      <div className="flex items-center justify-center w-full h-full bg-black mt-2">
         <Loading />
       </div>
     );
 
   return (
-    <main className="relative flex gap-2 w-full">
+    <main className="relative flex gap-2 w-full mt-3">
       {/* AsideBar for large screens */}
       {!aside && (
         <div className="hidden lg:block md:block lg:w-1/4 md:w-1/4">
@@ -123,19 +123,19 @@ export default function Product() {
       {!aside && (
         <div className="lg:hidden block w-screen z-15 absolute left-0 bg-gray-100">
           <button
-            className="flex justify-center items-center w-[70px] bg-black p-2 rounded-full"
+            className="flex justify-center items-center w-[40px] h-[40px] bg-black p-2 rounded-full"
             onClick={handleAside}
           >
-            <Image src="/closeW.svg" alt="filter" width={50} height={50} />
+            <Image src="/closeW.svg" alt="filter" width={30} height={30} />
           </button>
           <AsideBar setFilters={setFilters} filters={filters} />
         </div>
       )}
 
       <div className="flex flex-col montserrat-font gap-1 justify-start w-full items-center">
-        <div className="flex w-full">
+        <div className="flex w-full items-center">
           <button
-            className="relative montserrat-font flex justify-center items-center w-[70px] bg-black text-white rounded-full"
+            className="relative montserrat-font flex justify-center items-center w-[50px] h-[50px] bg-black text-white rounded-full"
             onClick={handleAside}
           >
             <Image

@@ -3,10 +3,10 @@ import { motion } from 'framer-motion';
 
 export default function PrivacyPolicyPage() {
   return (
-    <main className="montserrat-font min-h-screen bg-white text-gray-800 dark:bg-black dark:text-white px-6 py-10">
+    <main className="montserrat-font min-h-screen bg-black text-white px-6 py-10 mt-2">
       <div className="montserrat-font max-w-5xl mx-auto">
         <motion.h1
-          className="text-4xl md:text-5xl font-bold text-center mb-8 bg-gradient-to-r from-yellow-400 to-red-600 text-transparent bg-clip-text"
+          className="text-4xl md:text-5xl font-bold text-center mb-8 bg-gradient-to-r from-yellow-400 to-red-600 text-transparent bg-clip-text py-5"
           initial={{ y: -50, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ duration: 0.6 }}
@@ -15,7 +15,7 @@ export default function PrivacyPolicyPage() {
         </motion.h1>
 
         <motion.p
-          className="text-lg text-center max-w-3xl mx-auto mb-12 text-gray-600 dark:text-gray-300"
+          className="text-lg text-center max-w-3xl mx-auto mb-12 text-whiet"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.2, duration: 0.6 }}
@@ -23,7 +23,7 @@ export default function PrivacyPolicyPage() {
           This Privacy Policy describes how we handle your information when you purchase our chef sets, kitchen knives, and Damascus steel products.
         </motion.p>
 
-        <div className="space-y-10 text-base leading-relaxed text-gray-700 dark:text-gray-300">
+        <div className="space-y-10 text-base leading-relaxed text-white">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
@@ -66,12 +66,12 @@ export default function PrivacyPolicyPage() {
             transition={{ delay: 0.7, duration: 0.5 }}
           >
             <h2 className="text-xl font-semibold text-yellow-600 dark:text-yellow-400 mb-2">5. Contact</h2>
-            <p>For questions or data deletion requests, reach out to us at <span className="text-yellow-500">royalfold001@gmail.com</span>.</p>
+            <p>For questions or data deletion requests, reach out to us at <span className="text-yellow-500">royalfoldforge@gmail.com</span>.</p>
           </motion.div>
         </div>
 
         <motion.p
-          className="mt-16 text-center text-gray-500 dark:text-gray-400 text-sm"
+          className="mt-16 text-center text-white text-sm"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.8, duration: 0.5 }}
