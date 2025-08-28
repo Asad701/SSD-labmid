@@ -11,6 +11,7 @@ import FilterBar from '../components/FilterBar';
 import Loading from '../components/Loading';
 import NotFound from '../components/NotFound';
 import Image from 'next/image';
+import { useSearchParams } from 'next/navigation';
 
 export default function Product() {
   const [allProducts, setAllProducts] = useState([]);
@@ -22,7 +23,7 @@ export default function Product() {
   const [view, setView] = useState('grid');
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
-
+  const searchParams = useSearchParams();
   const router = useRouter();
 
   const [filters, setFilters] = useState({
@@ -42,12 +43,11 @@ export default function Product() {
     }
   };
 
-
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const category = params.get("category") || '';
-    setFilters((prev) => ({ ...prev, category:category }));
-  }, []);
+    const category = searchParams.get("category") || '';
+    setFilters((prev) => ({ ...prev, category }));
+  }, [searchParams]);
+
 
 
   // Fetch products whenever filters.category or page changes

@@ -213,7 +213,7 @@ export default function Nav() {
             <span className="montserrat-font text-amber-50 text-sm italic">Favourites</span>
           </Link>
           <Link
-            href="/product"
+            href="/product?category="
             className="flex flex-col montserrat-font  items-center gap-1 justify-center transform hover:scale-110"
           >
 
@@ -245,19 +245,19 @@ export default function Nav() {
                 <Link  href="/cart"  className="montserrat-font flex items-center w-full border-b py-4 justify-evenly " onClick={()=>{setMenu(!menu)}}>
                   <div className="montserrat-font text-black text-lg text-semibold hover:text-bold ">Cart</div>
                 </Link>
-                <Link  href="/favs"  className="montserrat-font flex items-center w-full border-b py-4 justify-evenly " onClick={()=>{setMenu(!menu)}}>
+                <Link  href="/favs"  className="montserrat-font flex items-center w-full border-b py-4 justify-evenly hover:bg-blue-100" onClick={()=>{setMenu(!menu)}}>
                   <div className="montserrat-font text-black text-lg text-semibold hover:text-bold">Favourites</div>
                 </Link>
-                <Link  href="/product"  className="montserrat-font flex items-center w-full border-b py-4 justify-evenly " onClick={()=>{setMenu(!menu)}}>
+                <Link  href="/product?category="  className="montserrat-font flex items-center w-full border-b py-4 justify-evenly  active:bg-blue-100" onClick={()=>{setMenu(!menu)}}>
                   <div className="text-black text-lg text-semibold hover:text-bold">Products</div>
                 </Link>
-                <Link  href="/aboutus"  className="montserrat-font flex items-center w-full border-b py-4 justify-evenly " onClick={()=>{setMenu(!menu)}}>
+                <Link  href="/aboutus"  className="montserrat-font flex items-center w-full border-b py-4 justify-evenly active:bg-blue-100 " onClick={()=>{setMenu(!menu)}}>
                   <div className="text-black text-lg text-semibold hover:text-bold">About Us</div>
                 </Link>
-                <Link  href="/contactus"  className="montserrat-font flex items-center w-full border-b py-4 justify-evenly  " onClick={()=>{setMenu(!menu)}}>
+                <Link  href="/contactus"  className="montserrat-font flex items-center w-full border-b py-4 justify-evenly  active:bg-blue-100  " onClick={()=>{setMenu(!menu)}}>
                   <div className="text-black text-lg text-semibold hover:text-bold">Contact Us</div>
                 </Link>
-                <Link  href="/privacy"  className="montserrat-font flex items-center w-full border-b py-4 justify-evenly  " onClick={()=>{setMenu(!menu)}}>
+                <Link  href="/privacy"  className="montserrat-font flex items-center w-full border-b py-4 justify-evenly  active:bg-blue-100  " onClick={()=>{setMenu(!menu)}}>
                   <div className="text-black text-lg text-semibold hover:text-bold">Privacy Policy</div>
                 </Link>
           </div>):null} )  

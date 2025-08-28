@@ -12,7 +12,7 @@ export default function Categorybar() {
 
   const handleCategory = (cat) => {
     setCategory(cat);
-    window.location.href =(`/product?category=${encodeURIComponent(cat)}`);
+    router.push(`/product?category=${encodeURIComponent(cat)}`);
   };
 
   const ScrollLeftHandle = () => {
@@ -77,7 +77,7 @@ export default function Categorybar() {
               />
             </div>
             <span className="mt-1 text-center font-bold montserrat-font text-white hover:text-amber-300">
-              {cat.title.replace('_', ' ')}
+              {cat.title}
             </span>
           </div>
         ))}

@@ -37,8 +37,12 @@ export async function GET(request) {
 
     // If no filters and page = 1, return all products
     if (!search && !category && page === 1) {
-      const products = await Product.find().sort({ createdAt: -1 });
-      return NextResponse.json({ products }, { status: 200 });
+      const total = await Product.countDocuments();
+      const products = await Product.find().sort({ createdAt: -1 })
+      .sort({ createdAt: -1 })
+      .skip((page - 1) * limit)
+      .limit(limit);
+      return NextResponse.json({ products, total }, { status: 200 });
     }
 
     const total = await Product.countDocuments(query);
