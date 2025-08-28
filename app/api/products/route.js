@@ -13,21 +13,16 @@ import { cookies } from "next/headers";
 
 export async function GET(request) {
   await DbConnect();
-  const { searchParams } = new URL(request.url);
 
+  const { searchParams } = new URL(request.url, `http://${request.headers.get("host")}`);
   const search = searchParams.get("search");
   const category = searchParams.get("category");
-  const page = parseInt(searchParams.get("page"));
-  if(!page){
-    const products = await Product.find().sort({createdAt:-1});
-    return NextResponse.json({ products}, { status: 200 });
-  }
+  const page = parseInt(searchParams.get("page")) || 1;
   const limit = 12;
 
   try {
     const query = {};
 
-    // 🔍 Add search filter
     if (search) {
       query.$or = [
         { productid: { $regex: search, $options: "i" } },
@@ -36,23 +31,31 @@ export async function GET(request) {
       ];
     }
 
-    // 📂 Add category filter (fix for array-based categories)
     if (category) {
       query.category = { $in: [category] };
     }
 
+    // If no filters and page = 1, return all products
+    if (!search && !category && page === 1) {
+      const products = await Product.find().sort({ createdAt: -1 });
+      return NextResponse.json({ products }, { status: 200 });
+    }
+
     const total = await Product.countDocuments(query);
+
     const products = await Product.find(query)
-      .sort({ _id: -1 })
+      .sort({ createdAt: -1 })
       .skip((page - 1) * limit)
       .limit(limit);
 
     return NextResponse.json({ products, total }, { status: 200 });
 
   } catch (error) {
+    console.error("Error fetching products:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
+
 
 
 // -------------------------

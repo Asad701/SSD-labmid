@@ -46,7 +46,7 @@ export default function Product() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const category = params.get("category") || '';
-    setFilters((prev) => ({ ...prev, category }));
+    setFilters((prev) => ({ ...prev, category:category }));
   }, []);
 
 
