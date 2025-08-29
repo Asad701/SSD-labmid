@@ -35,8 +35,21 @@ export default function OrderPage() {
     }));
 
     const total = products.reduce((acc, item) => {
-      const price = item.price - (item.discount || 0);
-      return acc + item.productcount * price;
+      const unitPrice = item.price - (item.discount || 0);
+      const count = item.productcount;
+
+      let discountPercent = 0;
+      if (count >= 3 && count <= 4) {
+        discountPercent = 0.4;
+      } else if (count > 4) {
+        discountPercent = 0.5;
+      }
+
+      const baseTotal = unitPrice * count;
+      const discountAmount = baseTotal * discountPercent;
+      const totalAfterDiscount = baseTotal - discountAmount;
+
+      return acc + totalAfterDiscount;
     }, 0);
 
     setOrder({ products: items, total });
@@ -57,7 +70,6 @@ export default function OrderPage() {
       const data = await res.json();
 
       if (data.url) {
-        // Redirect immediately to 2Checkout
         window.location.href = data.url;
       } else {
         alert(data.error || "Error creating buy link");
@@ -81,7 +93,7 @@ export default function OrderPage() {
             loading ? "bg-gray-400 cursor-not-allowed" : "bg-yellow-600 hover:bg-yellow-700"
           }`}
         >
-          {loading ? "Processing your order..." : "Click here to Buy Now"}
+          {loading ? "Processing your order..." : "Click here to Pay Now"}
         </button>
       )}
 
@@ -95,24 +107,51 @@ export default function OrderPage() {
         {products.length === 0 ? (
           <div className="text-gray-600 text-center py-6 col-span-full">Cart is empty</div>
         ) : (
-          products.map((item, idx) => (
-            <div key={`${item.productid}-${idx}`} className="bg-white p-3 rounded-lg shadow-md flex flex-col items-center">
-              <Image
-                src={`/${item.mainimage}`}
-                alt={item.title}
-                width={150}
-                height={150}
-                className="rounded-lg object-cover"
-              />
-              <div className="mt-2 text-center">
-                <div className="font-semibold">{item.title}</div>
-                <div className="text-gray-600">Qty: {item.productcount}</div>
-                <div className="text-teal-600 font-bold text-lg">
-                  ${(item.productcount * (item.price - (item.discount || 0))).toFixed(2)}
+          products.map((item, idx) => {
+            const unitPrice = item.price - (item.discount || 0);
+            const count = item.productcount;
+
+            let discountPercent = 0;
+            if (count >= 3 && count <= 4) {
+              discountPercent = 0.4;
+            } else if (count > 4) {
+              discountPercent = 0.5;
+            }
+
+            const baseTotal = unitPrice * count;
+            const discountAmount = baseTotal * discountPercent;
+            const totalAfterDiscount = baseTotal - discountAmount;
+
+            return (
+              <div
+                key={`${item.productid}-${idx}`}
+                className="bg-white p-3 rounded-lg shadow-md flex flex-col items-center"
+              >
+                <Image
+                  src={`/${item.mainimage}`}
+                  alt={item.title}
+                  width={150}
+                  height={150}
+                  className="rounded-lg object-cover"
+                />
+                <div className="mt-2 text-center">
+                  <div className="font-semibold line-clamp-2">{item.title}</div>
+                  <div className="text-gray-600">Qty: {count}</div>
+                  <div className="text-sm text-gray-500">Unit: ${unitPrice.toFixed(2)}</div>
+
+                  {discountPercent > 0 && (
+                    <div className="text-red-500 text-sm font-semibold">
+                      Discount: -${discountAmount.toFixed(2)}
+                    </div>
+                  )}
+
+                  <div className="text-teal-600 font-bold text-lg">
+                    Total: ${totalAfterDiscount.toFixed(2)}
+                  </div>
                 </div>
               </div>
-            </div>
-          ))
+            );
+          })
         )}
       </div>
 
