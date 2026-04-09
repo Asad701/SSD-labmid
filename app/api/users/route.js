@@ -13,7 +13,7 @@ export async function DELETE(request) {
     const token = cookieStore.get("token")?.value;
     const decoded = verifyToken(token);
 
-    if (!decoded || decoded.apikey !== process.env.API_KEY) {
+    if (!decoded) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 

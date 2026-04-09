@@ -8,6 +8,13 @@ export async function POST(req) {
     if (!userid) {
       return new Response(JSON.stringify({ error: "Missing userid" }), { status: 400 });
     }
+
+    const cookieStore = await cookies();
+    const token = cookieStore.get("token")?.value;
+    if (!token) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
+    }
+
     await DbConnect();
     const user = await User.findOne({ userid });
     if (!user) {
