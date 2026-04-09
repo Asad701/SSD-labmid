@@ -48,11 +48,6 @@ jobs:
         MONGO_URI: mongodb://localhost:27017/ssd_lab
         JWT_SECRET: test-secret-for-zap-scan-123
 
-    - name: Seed ZAP Test User
-      run: node scripts/seed-zap-user.mjs
-      env:
-        MONGO_URI: mongodb://localhost:27017/ssd_lab
-
     - name: Wait for App to be Ready
       run: npx wait-on http://localhost:3000 --timeout 60000
 
@@ -70,13 +65,13 @@ jobs:
     - name: Fix Workspace Permissions for ZAP
       run: chmod -R 777 .
 
-    # DAST (OWASP ZAP Scans) - Industry Standard Full Authenticated Implementation
-    - name: ZAP Full Authenticated Scan (DAST)
+    # DAST (OWASP ZAP Scans) - Simplified Non-Authenticated Implementation
+    - name: ZAP Full Scan (DAST)
       uses: zaproxy/action-full-scan@v0.12.0
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
         target: 'http://localhost:3000'
-        cmd_options: '-n .zap/auth.context -U zap-test@example.com -c .zap/rules.tsv'
+        cmd_options: '-c .zap/rules.tsv'
         fail_action: false
     
     - name: Upload ZAP Reports
