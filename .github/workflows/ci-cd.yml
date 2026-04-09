@@ -11,6 +11,11 @@ jobs:
     name: Build, Scan and Test
     runs-on: ubuntu-latest
     
+    permissions:
+      security-events: write
+      actions: read
+      contents: read
+
     steps:
     - name: Checkout Code
       uses: actions/checkout@v4
