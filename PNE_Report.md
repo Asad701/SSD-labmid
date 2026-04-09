@@ -1,6 +1,6 @@
 # Protection Needs Elicitation (PNE) Report
 
-**Project:** SecureApp-Sprint-[YourTeamName]  
+**Project:** SecureApp-Sprint-VulnSight  
 **Course:** CYC386 Secure Software Design and Development  
 **Instructor:** Engr. Muhammad Ahmad Nawaz  
 **Sprint Phase:** 1 (Hours 0–4)

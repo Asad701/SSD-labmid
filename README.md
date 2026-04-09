@@ -73,4 +73,3 @@ docker-compose restart nginx
 # NEXTJSROYAL
 ROYAL-ECOM-SITE-NEXTJS
 
-"# CorrectNextJS" 
