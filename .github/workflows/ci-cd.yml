@@ -35,11 +35,21 @@ jobs:
     - name: Install Dependencies
       run: npm install
 
+    - name: Run Security Tests (Audit & Lint)
+      run: npm test
+      continue-on-error: true
+
     - name: Build Application
       run: npm run build
 
     - name: Start Application (Background)
       run: npm run start &
+      env:
+        MONGO_URI: mongodb://localhost:27017/ssd_lab
+        JWT_SECRET: test-secret-for-zap-scan-123
+
+    - name: Seed ZAP Test User
+      run: node scripts/seed-zap-user.mjs
       env:
         MONGO_URI: mongodb://localhost:27017/ssd_lab
 
@@ -65,9 +75,7 @@ jobs:
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
         target: 'http://localhost:3000'
-        context_file: '.zap/auth.context'
-        cmd_options: '-U zap-test@example.com'
-        rules_file_name: '.zap/rules.tsv'
+        cmd_options: '-n .zap/auth.context -U zap-test@example.com -c .zap/rules.tsv'
         fail_action: false
     
     - name: Upload ZAP Reports
