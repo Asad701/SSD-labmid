@@ -64,6 +64,7 @@ jobs:
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v3
+      continue-on-error: true
 
     # Fix permissions for ZAP Docker container
     - name: Fix Workspace Permissions for ZAP

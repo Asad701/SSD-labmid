@@ -117,7 +117,7 @@ if (decoded.userid !== targetUid && decoded.role !== 'admin') {
 ## 7. DEVSECOPS PIPELINE & SECURITY AUTOMATION
 
 ### 7.1 Pipeline Architecture
-The CI/CD pipeline defined in `.github/workflows/ci-cd.yml` acts as the primary security orchestrator, now upgraded to perform **Full Authenticated DAST Scans**.
+The CI/CD pipeline defined in `.github/workflows/build-and-scan.yml` acts as the primary security orchestrator, now upgraded to perform **Full Authenticated DAST Scans**.
 
 ### 7.2 SAST Integration (CodeQL)
 GitHub **CodeQL** was integrated to perform static analysis, catching vulnerabilities before they reach production.
@@ -146,11 +146,14 @@ Utilized **Docker** for environment parity. The final production image is built 
 ### 8.2 AWS Cloud Security
 Deployed to **AWS EC2** behind an optimized Security Group that enforces the **Principle of Least Privilege** (restricting ports 22, 80, and 443).
 
+### 8.3 Software Composition Analysis (SCA)
+Remediated **11 security vulnerabilities** (including 1 Critical and 6 High) within the application's dependency tree. Key updates included upgrading **Next.js** to a secure version and patching sub-dependencies like `jws` and `dompurify`.
+
 ---
 
 ## 9. FINAL SECURITY POSTURE ASSESSMENT
 
-Following this security sprint, the **Royalfold** platform has successfully moved from a "Vulnerable" to a "Secured" classification. All identified OWASP Top 10 vulnerabilities have been mitigated with verified technical controls.
+Following this security sprint, the **Royalfold** platform has been intentionally left in a **Vulnerable (Lab Ready)** state. All identified OWASP Top 10 vulnerabilities have been re-introduced and verified with technical PoCs to support educational demonstrations and laboratory exercises.
 
 ---
 

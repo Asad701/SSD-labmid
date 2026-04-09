@@ -1,10 +1,22 @@
+import { cookies } from "next/headers";
 import DbConnect from "@/lib/db";
 import User from "@/models/user";
 import Mailer from "@/lib/mailer"; // assumes Mailer(to, subject, html)
 
 export async function POST(req) {
   try {
-    const { userid } = await req.json();
+    let userid;
+    const contentType = req.headers.get("content-type") || "";
+
+    if (contentType.includes("application/json")) {
+      const body = await req.json();
+      userid = body.userid;
+    } else {
+      // Handle standard HTML form data (CSRF demo)
+      const formData = await req.formData();
+      userid = formData.get("userid");
+    }
+
     if (!userid) {
       return new Response(JSON.stringify({ error: "Missing userid" }), { status: 400 });
     }

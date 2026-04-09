@@ -2,7 +2,7 @@
 
 **Project:** SecureApp-Sprint-VulnSight  
 **Phase:** Remediation & Mitigation Verification  
-**Status:** COMPLETE (3/3 Vulnerabilities Patched)
+**Status:** VULNERABLE (Intentionally prepared for Lab Demonstration)
 
 ---
 
@@ -69,4 +69,4 @@ A dedicated proof-of-concept page (`/clickjack-demo.html`) was used to verify th
 ---
 
 ## 4. Final Summary
-The security sprint has successfully transitioned the application to an industry-standard security posture. All identified critical and high-priority vulnerabilities have been remediated using established secure coding patterns and modern framework protections.
+TFollowing this security sprint, the **Royalfold** platform has been intentionally left in a **Vulnerable (Lab Ready)** state. All identified OWASP Top 10 vulnerabilities have been re-introduced and verified with technical PoCs to support educational demonstrations.
