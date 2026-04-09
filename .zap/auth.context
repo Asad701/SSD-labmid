@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<configuration>
+    <context>
+        <name>SecureApp-Authentic</name>
+        <desc>Authenticated context for ZAP Full Scan</desc>
+        <inscope>true</inscope>
+        <incregexps>http://localhost:3000.*</incregexps>
+        <tech>
+            <include>Db.MongoDB</include>
+            <include>Lang.JavaScript</include>
+            <include>OS.Linux</include>
+            <include>SCM.Git</include>
+            <include>WS.Express</include>
+        </tech>
+        <authentication>
+            <type>2</type>
+            <strategy>EACH_RESP</strategy>
+            <pollurl/>
+            <polldata/>
+            <pollheaders/>
+            <pollfreq>60</pollfreq>
+            <loggedin>logout</loggedin>
+            <loggedout>login</loggedout>
+            <form>
+                <loginurl>http://localhost:3000/api/login</loginurl>
+                <loginbody>{"email":"{%username%}", "password":"{%password%}"}</loginbody>
+                <loginpageurl>http://localhost:3000/login</loginpageurl>
+            </form>
+        </authentication>
+        <users>
+            <user>1;true;WkFQLVRlc3QtVXNlcg==;2;emFwLXRlc3RAZXhhbXBsZS5jb20=~WmFwVGVzdDEyMyE=~</user>
+        </users>
+        <forceduser>1</forceduser>
+        <session>
+            <type>0</type>
+        </session>
+        <authorization>
+            <type>0</type>
+            <basic>
+                <header/>
+                <body/>
+                <logic>AND</logic>
+                <code>-1</code>
+            </basic>
+        </authorization>
+    </context>
+</configuration>

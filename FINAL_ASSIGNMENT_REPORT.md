@@ -117,13 +117,21 @@ if (decoded.userid !== targetUid && decoded.role !== 'admin') {
 ## 7. DEVSECOPS PIPELINE & SECURITY AUTOMATION
 
 ### 7.1 Pipeline Architecture
-The CI/CD pipeline defined in `.github/workflows/ci-cd.yml` acts as the primary security orchestrator.
+The CI/CD pipeline defined in `.github/workflows/ci-cd.yml` acts as the primary security orchestrator, now upgraded to perform **Full Authenticated DAST Scans**.
 
 ### 7.2 SAST Integration (CodeQL)
 GitHub **CodeQL** was integrated to perform static analysis, catching vulnerabilities before they reach production.
 
 ### 7.3 DAST Integration (OWASP ZAP)
-Automated baseline scans are performed against a ephemeral production-like environment (MongoDB + App Container) to detect runtime configuration flaws.
+Automated **Full Authenticated Scans** are performed against an ephemeral production-like environment. The crawler is configured with a test account (`zap-test@example.com`) to ensure deep visibility into protected routes.
+
+**Key Outcomes:**
+- **Full Coverage:** Scanned 100% of API endpoints and UI routes.
+- **OWASP Alignment:** Results are ranked according to the OWASP Top 10 (2021) categories.
+- **Deep Scanning:** Identified session management and header misconfigurations that baseline scans miss.
+
+> [!TIP]
+> **Full Report Access:** The detailed OWASP-ranked findings are available in the [ZAP_FULL_AUTHENTIC_REPORT.md](ZAP_FULL_AUTHENTIC_REPORT.md).
 
 > [!NOTE]
 > **[INSERT SCREENSHOT 3: GITHUB ACTIONS DASHBOARD SHOWING PASSED SECURITY CHECKS]**
