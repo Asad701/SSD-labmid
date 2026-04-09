@@ -28,7 +28,7 @@
             </form>
         </authentication>
         <users>
-            <user>1;true;WkFQLVRlc3QtVXNlcg==;2;emFwLXRlc3RAZXhhbXBsZS5jb20=~WmFwVGVzdDEyMyE=~</user>
+            <user>1;true;emFwLXRlc3RAZXhhbXBsZS5jb20=;2;emFwLXRlc3RAZXhhbXBsZS5jb20=~WmFwVGVzdDEyMyE=~</user>
         </users>
         <forceduser>1</forceduser>
         <session>
