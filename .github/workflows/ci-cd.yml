@@ -40,6 +40,19 @@ jobs:
       run: npm test
       continue-on-error: true
 
+    # Phase 4: Automated Security Testing (SAST) — must init BEFORE build
+    - name: Initialize CodeQL
+      uses: github/codeql-action/init@v3
+      with:
+        languages: 'javascript'
+
+    - name: Autobuild (CodeQL)
+      uses: github/codeql-action/autobuild@v3
+
+    - name: Perform CodeQL Analysis
+      uses: github/codeql-action/analyze@v3
+
+    # Build & start app for DAST scanning
     - name: Build Application
       run: npm run build
 
@@ -51,16 +64,6 @@ jobs:
 
     - name: Wait for App to be Ready
       run: npx wait-on http://localhost:3000 --timeout 60000
-
-    # Phase 4: Automated Security Testing (SAST)
-    - name: Initialize CodeQL
-      uses: github/codeql-action/init@v3
-      with:
-        languages: 'javascript'
-
-    - name: Perform CodeQL Analysis
-      uses: github/codeql-action/analyze@v3
-      continue-on-error: true
 
     # Fix permissions for ZAP Docker container
     - name: Fix Workspace Permissions for ZAP
