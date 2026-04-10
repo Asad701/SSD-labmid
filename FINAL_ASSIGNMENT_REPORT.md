@@ -162,3 +162,9 @@ Following this security sprint, the **Royalfold** platform has been intentionall
 2. [NIST SP 800-53: Security & Privacy Controls](https://csrc.nist.gov/publications/detail/sp/800-53/rev-5/final)
 3. [GitHub Security Documentation](https://docs.github.com/en/code-security)
 4. [Next.js Official Security Guide](https://nextjs.org/docs/app/building-your-application/configuring/security-headers)
+
+
+
+
+---
+
