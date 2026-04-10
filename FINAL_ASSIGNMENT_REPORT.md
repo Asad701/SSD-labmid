@@ -77,15 +77,15 @@ The platform leverages a **Next.js** frontend/backend architecture with a **Mong
 ### 5.1 VULN-001: Insecure Direct Object Reference (IDOR)
 - **CWE-639:** Identification of account bypass through user-controlled key.
 - **Impact:** Critical (Unauthorized Data Destruction).
-- **Discovery:** Through request tampering in the `DELETE /api/users` endpoint.
+- **Discovery:** Through request tampering in the `POST /api/deleteAccount` endpoint, where the target `userid` was read from the payload rather than checking the authenticated token session.
 
 > [!NOTE]
 > **[INSERT SCREENSHOT 1: BURP SUITE REPEATER SHOWING IDOR EXPLOIT SUCCESS]**
 
 ### 5.2 VULN-002: Cross-Site Request Forgery (CSRF)
 - **CWE-352:** Cross-Site Request Forgery.
-- **Impact:** High (Unauthorized State Change).
-- **Discovery:** Identified lack of anti-CSRF tokens and insecure cookie attributes.
+- **Impact:** Critical (Full and Permanent Account / Data Deletion).
+- **Discovery:** Identified lack of anti-CSRF tokens validating destructive state changes in the profile deletion workflow.
 
 > [!NOTE]
 > **[INSERT SCREENSHOT 2: MALICIOUS EXPLOIT HTML PAGE TRIGGERING DELETION]**
@@ -93,7 +93,7 @@ The platform leverages a **Next.js** frontend/backend architecture with a **Mong
 ### 5.3 VULN-003: Clickjacking (UI Redressing)
 - **CWE-1021:** Improper Restriction of Rendered UI Layers or Frames.
 - **Impact:** Medium (Deceptive UI Manipulation).
-- **Discovery:** Verification of missing `X-Frame-Options` and CSP frame-ancestors.
+- **Discovery:** Verification of missing `X-Frame-Options` headers and the successful creation of an interactive "Attacker Sandbox" that perfectly aligns an invisible `iframe` over malicious click-bait.
 
 ---
 

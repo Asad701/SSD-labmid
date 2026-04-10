@@ -3,101 +3,213 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Clickjacking Demo Exploit</title>
+    <title>Interactive Clickjacking Sandbox</title>
     <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background: #f0f2f5; 
+            padding: 20px; 
             margin: 0;
-            padding: 20px;
-            background-color: #f0f2f5;
         }
-        .container {
-            max-width: 800px;
-            margin: auto;
-            background: white;
-            padding: 20px;
+        .container { 
+            max-width: 900px; 
+            margin: auto; 
+            background: white; 
+            padding: 25px; 
+            border-radius: 8px; 
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1); 
+        }
+        h1 { color: #d63031; margin-top: 0; }
+        .controls { 
+            margin-bottom: 20px; 
+            padding: 20px; 
+            background: #e3f2fd; 
+            border-left: 5px solid #0984e3;
+            border-radius: 5px; 
+        }
+        .controls h3 { margin-top: 0; color: #0984e3; }
+        .exploit-area { 
+            position: relative; 
+            width: 100%; 
+            height: 500px; 
+            border: 2px dashed #ff7675; 
+            overflow: hidden; 
+            background: #dfe6e9; 
             border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
-        h1 { color: #d63031; }
-        .exploit-box {
-            position: relative;
+        
+        /* Fake UI - What the user thinks they are clicking */
+        .fake-ui { 
+            position: absolute; 
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 100%; 
+            display: flex; 
+            flex-direction: column; 
+            justify-content: center; 
+            align-items: center; 
+            z-index: 1; 
+            pointer-events: auto; /* Catch clicks if they miss the iframe */
+        }
+        .fake-button { 
+            padding: 15px 40px; 
+            background-color: #00b894; 
+            color: white; 
+            border: none; 
+            border-radius: 50px; 
+            font-size: 24px; 
+            font-weight: bold;
+            cursor: pointer; 
+            box-shadow: 0 4px 0 #00876c; 
+            transition: transform 0.1s;
+        }
+        .fake-button:active { transform: translateY(4px); box-shadow: 0 0 0; }
+        
+        /* Iframe wrapper for dragging */
+        .iframe-container {
+            position: absolute;
+            top: 0;
+            left: 0;
             width: 100%;
-            height: 600px;
-            border: 2px dashed #ff7675;
-            margin-top: 20px;
-            overflow: hidden;
+            height: 100%;
+            z-index: 2; /* Renders above the fake UI */
+            opacity: 0.6; /* Default visibility to aid alignment */
+            cursor: grab; /* Indicate it can be dragged */
         }
-        /* The invisible iframe containing the target site */
+        .iframe-container:active { cursor: grabbing; }
+        
         iframe {
+            width: 1400px;
+            height: 1200px;
             position: absolute;
-            top: 0;
+            top: -200px; 
             left: 0;
-            width: 100%;
-            height: 100%;
-            opacity: 0.3; /* Partially visible for demo purposes; set to 0.0 for real exploit */
-            z-index: 10;
+            /* Initially disabled to allow the wrapper to capture mouse drag events */
+            pointer-events: none; 
         }
-        /* Mask/Overlay content that the user *thinks* they are clicking */
-        .overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            z-index: 5;
-            background: white;
+        
+        /* Attack Mode Styles */
+        body.attack-mode .iframe-container {
+            cursor: crosshair;
         }
-        .fake-button {
-            padding: 15px 30px;
-            background-color: #0984e3;
+        body.attack-mode iframe {
+            pointer-events: auto; /* Enable clicks directly onto the vulnerable site */
+        }
+        
+        .toggle-btn {
+            padding: 12px 24px;
+            font-size: 16px;
+            font-weight: bold;
+            background: #dc3545;
             color: white;
             border: none;
             border-radius: 5px;
-            font-size: 18px;
             cursor: pointer;
-            box-shadow: 0 4px 0 #074b81;
-        }
-        .fake-button:active {
-            transform: translateY(2px);
-            box-shadow: 0 2px 0 #074b81;
-        }
-        .warning {
-            background-color: #ffeaa7;
-            padding: 10px;
-            border-left: 5px solid #fab1a0;
-            margin-bottom: 20px;
+            transition: background 0.3s;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Clickjacking Demonstration</h1>
-        <div class="warning">
-            <strong>Lab Note:</strong> This page demonstrates how an attacker can overlay a "Fake" UI over your application.
-            Currently, the target app below is at 30% opacity to show you what's happening. In a real attack, it would be 0%.
-        </div>
-        <p>In this scenario, the attacker baits you to click "Claim Reward", but your click is actually hitting a sensitive button in the application hidden underneath (like "Delete Account" or "Confirm Purchase").</p>
+        <h1>Advanced Clickjacking Sandbox</h1>
+        <p>This lab demonstrates UI Redressing (Clickjacking) exactly as an attacker would construct the payload.</p>
         
-        <div class="exploit-box">
-            <!-- The Overlay the user sees -->
-            <div class="overlay">
-                <h2>CONGRATULATIONS!</h2>
-                <p>You've won a free iPhone 15 Pro Max!</p>
-                <button class="fake-button" onclick="alert('You clicked the fake button, but in a real clickjack, the click passed through to the hidden iframe!')">CLAIM REWARD NOW</button>
+        <div class="controls">
+            <h3>Attacker Toolkit</h3>
+            <p><strong>Step 1:</strong> Drag the semi-transparent target application ("Royal Fold & Forge") inside the dashed box below until the red <b>"Request Account Deletion"</b> button is perfectly aligned exactly over the green <b>"WIN AN IPAD"</b> button.</p>
+            <p>
+                <strong>Step 2: Adjust Target Opacity: </strong>
+                <input type="range" id="opacity" min="0" max="1" step="0.1" value="0.6">
+                <span id="op-val" style="font-weight:bold; width:30px; display:inline-block;">0.6</span>
+                <i>(An attacker sets this to 0.0 before sending to the victim)</i>
+            </p>
+            <p>
+                <strong>Step 3: </strong>
+                <button id="toggle-mode" class="toggle-btn">Enter Attack Mode (Enable Clicks)</button>
+            </p>
+            <p style="font-size: 0.9em; color: #636e72;"><i>Note: In Attack Mode, dragging is disabled, and clicks pass directly to the target application.</i></p>
+        </div>
+        
+        <div class="exploit-area">
+            <!-- Overlay that the victim sees -->
+            <div class="fake-ui" id="fake-ui">
+                <h1 style="color:#2d3436; font-size: 3em; margin-bottom: 20px;">LUCKY WINNER!</h1>
+                <button class="fake-button" id="fake-btn">WIN AN IPAD NOW</button>
             </div>
-
-            <!-- The Victim Application (Insecure because X-Frame-Options is missing) -->
-            <iframe src="/account"></iframe>
+            
+            <!-- Vulnerable application loaded in iframe -->
+            <div class="iframe-container" id="draggable">
+                <iframe src="/account" id="target-iframe"></iframe>
+            </div>
         </div>
-        
-        <p style="margin-top: 20px; color: #636e72; font-style: italic;">
-            To fix this, the application should send the <code>X-Frame-Options: DENY</code> or <code>SAMEORIGIN</code> header.
-        </p>
     </div>
+
+    <script>
+        const container = document.getElementById('draggable');
+        const iframe = document.getElementById('target-iframe');
+        const opacitySlider = document.getElementById('opacity');
+        const opVal = document.getElementById('op-val');
+        const toggleBtn = document.getElementById('toggle-mode');
+        
+        let isDragging = false;
+        let startX, startY;
+        
+        // Initial offset estimates (these help it start somewhat close to the button)
+        let currentX = -50; 
+        let currentY = -250; 
+        
+        iframe.style.left = currentX + 'px';
+        iframe.style.top = currentY + 'px';
+
+        // --- Dragging Logic ---
+        container.addEventListener('mousedown', (e) => {
+            if (document.body.classList.contains('attack-mode')) return; // No dragging in attack mode
+            isDragging = true;
+            startX = e.clientX - currentX;
+            startY = e.clientY - currentY;
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (!isDragging) return;
+            currentX = e.clientX - startX;
+            currentY = e.clientY - startY;
+            iframe.style.left = currentX + 'px';
+            iframe.style.top = currentY + 'px';
+        });
+
+        document.addEventListener('mouseup', () => { isDragging = false; });
+
+        // --- Opacity Slider ---
+        opacitySlider.addEventListener('input', (e) => {
+            container.style.opacity = e.target.value;
+            opVal.innerText = e.target.value;
+        });
+
+        // --- Toggle Attack Mode ---
+        toggleBtn.addEventListener('click', () => {
+            document.body.classList.toggle('attack-mode');
+            const isAttackMode = document.body.classList.contains('attack-mode');
+            
+            if (isAttackMode) {
+                toggleBtn.innerText = "Exit Attack Mode (Enable Dragging)";
+                toggleBtn.style.background = "#00b894"; // Green for active trap
+                container.style.opacity = "0.0"; // Fully invisible trap
+                opacitySlider.value = "0";
+                opVal.innerText = "0";
+            } else {
+                toggleBtn.innerText = "Enter Attack Mode (Enable Clicks)";
+                toggleBtn.style.background = "#dc3545"; // Red for deactivated
+                container.style.opacity = "0.6"; // Visible for alignment
+                opacitySlider.value = "0.6";
+                opVal.innerText = "0.6";
+            }
+        });
+        
+        // Target fake button click feedback if they missed the iframe
+        document.getElementById('fake-btn').addEventListener('click', () => {
+            alert('Fake button clicked!\\n\\nIf you see this, it means you clicked the actual "WIN AN IPAD" button. \\n\\nTo properly test Clickjacking, ensure the Iframe is over the button and "Attack Mode" is ON.');
+        });
+    </script>
 </body>
 </html>

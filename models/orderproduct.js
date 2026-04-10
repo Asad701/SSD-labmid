@@ -13,5 +13,5 @@ const OrderProductSchema = new mongoose.Schema({
 { timestamps: true },);
 
 
-const OrderProduct = mongoose.models.OrderProduct || mongoose.model('Orderproduct',OrderProductSchema);
+const OrderProduct = mongoose.models.Orderproduct || mongoose.model('Orderproduct',OrderProductSchema);
 export default OrderProduct;

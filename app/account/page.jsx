@@ -50,9 +50,7 @@ export default function AccountPage() {
     setMessage("");
     try {
       const res = await fetch("/api/deleteAccount", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userid: user.userid }),
+        method: "POST"
       });
 
       const data = await res.json();

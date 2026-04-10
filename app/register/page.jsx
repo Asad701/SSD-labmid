@@ -32,7 +32,7 @@ export default function RegisterPage() {
       })
       const result = await response.json()
       if (response.ok) {
-        window.location.href = `/verification/${encodeURIComponent(email)}`
+        window.location.href = `/login`
       } else {
         setMessage(result.message)
         setDisabled(false) // ✅ re-enable if failed
