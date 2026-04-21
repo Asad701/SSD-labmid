@@ -3,7 +3,7 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 
 # RoyalFold
-E-commerce site.
+E-commerce site-
 
 ## Getting Started  on dev mode.
 
