@@ -3,7 +3,7 @@ import DbConnect from "@/lib/db";
 import User from "@/models/user";
 import Mailer from "@/lib/mailer";
 import { cookies } from "next/headers";
-import { verifyToken } from "@/lib/auth"; 
+import { verifyToken } from "@/lib/auth";
 export async function DELETE(request) {
   try {
     await DbConnect();
@@ -16,6 +16,21 @@ export async function DELETE(request) {
     if (!decoded) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
+
+    // ==========================================
+    // IDOR PROTECTION (TOGGLE VERSIONS)
+    // ==========================================
+
+    // --- VERSION 1: PREVENT ATTACK (Secure) ---
+    /*
+    if (decoded.userid !== uid && decoded.role !== 'admin') {
+      console.warn(`[SECURITY] Blocked unauthorized deletion attempt by ${decoded.userid} on user ${uid}`);
+      return NextResponse.json({ message: "Forbidden: You cannot delete other users." }, { status: 403 });
+    }
+    */
+
+    // --- VERSION 2: DO ATTACK (Vulnerable) ---
+    // (Active: Allows any user to delete any UID for demonstration)
 
     // ✅ Find user before deleting
     const user = await User.findOne({ userid: uid });
@@ -92,7 +107,7 @@ export async function GET(request) {
       return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
     }
 
-    const users = await User.find({}).sort({createdAt:-1});
+    const users = await User.find({}).sort({ createdAt: -1 });
     return NextResponse.json(users, { status: 200 });
 
   } catch (err) {
@@ -110,7 +125,7 @@ export async function POST(request) {
       return NextResponse.json({ message: "Missing searchId" }, { status: 400 });
     }
 
-    const cookieStore = await cookies(); 
+    const cookieStore = await cookies();
     const token = cookieStore.get("token")?.value;
 
     if (!token) {

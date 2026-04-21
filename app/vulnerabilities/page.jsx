@@ -82,22 +82,6 @@ export default function VulnerabilitiesDashboard() {
           link="/idor-demo"
           type="primary"
         />
-
-        <VulnerabilityCard 
-          title="Cross-Site Request Forgery" 
-          category="A01:2021 – Broken Access Control" 
-          description="Demonstrate how a malicious third-party site can trick a user's browser into performing sensitive actions without their knowledge."
-          link="/csrf-demo"
-          type="primary"
-        />
-
-        <VulnerabilityCard 
-          title="Clickjacking (UI Redressing)" 
-          category="A05:2021 – Security Misconfiguration" 
-          description="Verify if the application can be embedded in an iframe and overlaid with deceptive elements to trick users into unintended clicks."
-          link="/clickjack-demo.html"
-          type="primary"
-        />
       </section>
 
       <div style={{ 

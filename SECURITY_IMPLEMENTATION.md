@@ -2,71 +2,49 @@
 
 **Project:** SecureApp-Sprint-VulnSight  
 **Phase:** Remediation & Mitigation Verification  
-**Status:** VULNERABLE (Intentionally prepared for Lab Demonstration)
+**Status:** PARTIALLY HARDENED (CSRF/Clickjacking Fixed, IDOR Active for Lab)
 
 ---
 
 ## 1. IDOR (Insecure Direct Object Reference)
 **Affected Endpoint:** `DELETE /api/users`  
-**Mitigation Category:** Broken Access Control Fix
+**Status:** **[VULNERABLE]** (Maintained for educational demonstration)
 
-### Remediation
-Implemented strict identity verification. The application now compares the `userid` extracted from the cryptographically signed JWT with the `uid` provided in the request body. Administrative accounts are exempt from this ownership check but are explicitly verified for the `admin` role.
-
-### Evidence of Fix
-- [x] Unauthorized deletion attempts return `403 Forbidden`.
-- [x] Valid ownership deletions are processed correctly.
-- [x] Administrative deletions are restricted to authorized users.
+### Description
+The application intentionally maintains an IDOR vulnerability on the user management endpoint to support laboratory exercises in access control bypass.
 
 ---
 
 ## 2. CSRF (Cross-Site Request Forgery)
 **Affected Endpoint:** `POST /api/deleteAccount`  
-**Mitigation Category:** Session Security Enhancement
+**Status:** **[REMEDIATED]**
 
 ### Remediation
-Applied a defense-in-depth approach:
-1.  **SameSite Attribute:** Authentication cookies are now configured with `SameSite=Strict` to prevent automatic transmission on cross-site requests.
-2.  **Explicit Verification:** Implemented checks for custom request headers (e.g., `X-Requested-With`) which cannot be set in simple cross-site HTML form submissions.
+Implemented **Custom Header Verification** (`X-Requested-With`). This defense relies on the fact that cross-origin HTML `<form>` submissions cannot attach custom headers without triggering a CORS preflight, which is not authorized for the attacker's origin.
 
 ### Evidence of Fix
-- [x] Cross-domain form submissions fail to attach authenticated cookies.
-- [x] Direct API requests from foreign domains are blocked by the browser's CORS and SameSite policy.
+- [x] Attacker Site (`port 3001`) form submissions return `403 Forbidden`.
+- [x] Legitimate internal requests (which include the header) are processed successfully.
 
 ---
 
 ## 3. Clickjacking (UI Redressing)
 **Affected Scope:** Global  
-**Mitigation Category:** Security Misconfiguration / Frame Protection
+**Status:** **[REMEDIATED]**
 
 ### Remediation
 Implemented a global security header policy within the Next.js `next.config.mjs` configuration.
 
 **Final Implementation:**
 ```javascript
-// next.config.mjs
-const nextConfig = {
-  async headers() {
-    return [
-      {
-        source: '/(.*)',
-        headers: [
-          { key: 'X-Frame-Options', value: 'DENY' },
-          { key: 'Content-Security-Policy', value: "frame-ancestors 'none';" }
-        ],
-      },
-    ];
-  },
-};
+{ key: 'X-Frame-Options', value: 'DENY' }
 ```
 
 ### Evidence of Fix
-A dedicated proof-of-concept page (`/clickjack-demo.html`) was used to verify the fix.
-- **Before Fix:** The application was successfully framed, allowing UI overlay attacks.
-- **After Fix:** The browser refused to render the application in a frame, throwing a console error:
-  `Refused to display 'http://localhost:3001/' in a frame because it set 'X-Frame-Options' to 'deny'`.
+- [x] Attacker Site (`port 3001`) iframe injection is blocked by the browser.
+- [x] Console error: `Refused to display 'http://localhost:3000/' in a frame because it set 'X-Frame-Options' to 'deny'`.
 
 ---
 
 ## 4. Final Summary
-TFollowing this security sprint, the **Royalfold** platform has been intentionally left in a **Vulnerable (Lab Ready)** state. All identified OWASP Top 10 vulnerabilities have been re-introduced and verified with technical PoCs to support educational demonstrations.
+As requested, CSRF and Clickjacking have been remediated on the main application origin. The IDOR vulnerability has been preserved as the primary internal laboratory exercise.

@@ -62,10 +62,26 @@ export async function POST(request) {
     const token = signToken({ userid: user.userid});
 
     const response = NextResponse.json({ message: 'Login successful', user });
-      response.cookies.set("token", token, {
+    
+    // ==========================================
+    // CSRF PROTECTION (TOGGLE VERSIONS)
+    // ==========================================
+
+    // --- VERSION 1: PREVENT ATTACK (Secure) ---
+    /*
+    response.cookies.set("token", token, {
         httpOnly: true,
         secure: true,
-        sameSite: "none",
+        sameSite: "strict", // Blocks cross-site transmission entirely
+        path: "/",
+    });
+    */
+
+    // --- VERSION 2: DO ATTACK (Vulnerable) ---
+    response.cookies.set("token", token, {
+        httpOnly: true,
+        secure: true,      
+        sameSite: "none",  // Allows automatic transmission across origins
         path: "/",
     });
 

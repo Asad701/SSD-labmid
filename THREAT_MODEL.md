@@ -1,91 +1,49 @@
 # Threat Model & Risk Assessment
 
 **Project:** SecureApp-Sprint-VulnSight  
-**Document version:** 1.2 (Post-Mitigation)  
-**Security Framework:** STRIDE / CVSS v3.1
+**Sprint Phase:** 2 (Hours 4–12)
 
 ---
 
-## 1. Data Flow Diagram (DFD)
+## 1. STRIDE Threat Analysis
 
-The following diagram illustrates the data flows and trust boundaries within the application, highlighting potential attack vectors addressed during this security sprint.
-
-```mermaid
-graph TD
-    User((Authenticated User))
-    Attacker((Malicious Actor))
-    
-    subgraph Web_Browser [Client Environment]
-        UI[Application UI]
-        Iframe[Attacker Iframe]
-    end
-    
-    subgraph NextJS_App [Server Environment / Trust Boundary]
-        API_Users[API: Users Management]
-        API_Account[API: Account Management]
-        Security_Headers[Security Middleware / Headers]
-    end
-    
-    DB[(MongoDB Database)]
-
-    User -- "1. Authentic Requests" --> UI
-    UI -- "2. Authenticated API Calls" --> API_Account
-    Attacker -- "3. Clickjacking / Overlay" --> Iframe
-    Iframe -- "4. Unauthorized UI Redressing" --> UI
-    Attacker -- "5. IDOR / CSRF Attempts" --> API_Users
-    
-    API_Account -- "6. Verified Access" --> DB
-    API_Users -- "7. Authorization Check" --> DB
-    Security_Headers -- "8. Block Framing" --> Iframe
-```
-
----
-
-## 2. STRIDE Threat Analysis
-
-| Threat Category | Applied Threat Description | Vulnerable Endpoint | Mitigation Strategy (Applied) |
+| Threat Category | Applied Threat Description | Vulnerable Endpoint | Mitigation Strategy |
 | :--- | :--- | :--- | :--- |
-| **S**poofing | Attacker triggers actions on behalf of a victim via CSRF. | `/api/deleteAccount` | Anti-CSRF Headers & SameSite Cookies |
-| **T**ampering | Unauthorized modification of user data via IDOR. | `/api/users (DELETE)` | Object-level Authorization (RBAC) |
-| **R**epudiation | Actions performed without audit trail. | `/api/deleteAccount` | Enhanced Server-side Logging |
-| **I**nformation Disclosure | Accessing user PII without permission. | `/api/account (GET)` | Strict Session & Ownership Validation |
-| **D**enial of Service | Mass account deletion via automated IDOR script. | `/api/users (DELETE)` | Authorization Checks + Rate Limiting |
-| **E**levation of Privilege | Standard user deleting other users. | `/api/users (DELETE)` | Role-Based Access Control (Admin only) |
+| **S**poofing | Attacker triggers actions on behalf of a victim. | `/api/deleteAccount` | Anti-CSRF Tokens |
+| **T**ampering | User modifies data belonging to another user. | `/api/users (DELETE)` | Object-level Authorization |
+| **R**epudiation | Lack of logs for account deletion. | `/api/deleteAccount` | Auditable Audit Logging |
+| **I**nformation Disclosure | Accessing user data without permission. | `/api/account (GET)` | Session Validation |
+| **D**enial of Service | Mass-deleting users via automated IDOR script. | `/api/users (DELETE)` | Rate Limiting + Auth |
+| **E**levation of Privilege | Normal user performing admin deletion. | `/api/users (DELETE)` | RBAC (Role-Based Access) |
 
----
+## 2. Risk Assessment (CVSS v3.1)
 
-## 3. Risk Assessment (CVSS v3.1)
-
-| Vulnerability | Attack Vector | CVSS Base Score | Severity | Mitigation Status |
+| Vulnerability | Attack Vector | Base Score | Severity | Description |
 | :--- | :--- | :--- | :--- | :--- |
-| **IDOR** | Network | **8.1** | **High** | **REMEDIATED**: Added ownership verification. |
-| **CSRF** | Network | **6.5** | **Medium** | **REMEDIATED**: Implemented cookie safety. |
-| **Clickjacking** | Network | **4.3** | **Medium** | **REMEDIATED**: Global `X-Frame-Options` header. |
+| **IDOR** | Network | **8.1** | **High** | Attacker can delete users' accounts knowing only their UID. High impact on Integrity. |
+| **CSRF** | Network | **6.5** | **Medium** | Trick authenticated users into deleting their account. Significant impact on Availability. |
+| **Clickjacking** | Network | **4.3** | **Medium** | Trick users into unintended UI interactions. Low impact on Confidentiality/Integrity. |
 
----
+### CVSS Calculation Detail (IDOR)
+*   **Vector String:** `CVSS:3.1/AV:N/AC:L/PR:L/UI:N/S:U/C:N/I:H/A:H`
+*   **Attack Vector:** Network
+*   **Attack Complexity:** Low
+*   **Privileges Required:** Low (Registered User)
+*   **User Interaction:** None
+*   **Impact:** High (Availability & Integrity)
 
-## 4. Attack Tree (Unauthorized Resource Access)
+## 3. Attack Tree (Account Takeover / Deletion)
 
-```mermaid
-graph TD
-    Root[Unauthorized Resource Access]
-    Destruction[Data Destruction]
-    Redressing[UI Redressing]
-    
-    Root --> Destruction
-    Root --> Redressing
-    
-    Destruction --> IDOR[Exploit IDOR in /api/users]
-    Destruction --> CSRF[Exploit CSRF in /api/deleteAccount]
-    
-    Redressing --> CJ[Clickjacking / Invisible Iframe]
-    
-    style IDOR fill:#f96,stroke:#333
-    style CSRF fill:#f96,stroke:#333
-    style CJ fill:#f96,stroke:#333
+```text
+Root: Unauthorized Data Destruction
+ ├── Goal 1: Delete User Account
+ │    ├── Path A: Exploit IDOR [Vulnerable Code in /api/users]
+ │    │    └── Step: Scripted deletion of UIDs sequentially.
+ │    └── Path B: Exploit CSRF [Vulnerable Code in /api/deleteAccount]
+ │         └── Step: Victim clicks malicious link to auto-submit form.
+ └── Goal 2: Hijack UI [Clickjacking]
+      └── Step: Overlay fake buttons in iframe over victim's site.
 ```
 
----
-
-## 5. Security Posture Summary
-The initial threat model identified **IDOR** as a critical risk. Following the security sprint, all identified high and medium severity risks have been mitigated by transitioning from implicit trust to explicit authorization and implementing robust defense-in-depth headers.
+## 4. Summary
+The threat model identifies **IDOR** as the most critical risk due to its high impact and ease of automation. Immediate prioritization must be given to implementing server-side ownership checks on all object-level accesses.
